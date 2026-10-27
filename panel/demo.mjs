@@ -1,32 +1,34 @@
 // Dane przykładowe (tryb DEMO): wiarygodny obraz panelu, zanim podłączysz pierwsze konto.
-// Same zmyślone konta ChatGPT/Codex w domenie example.com — żadnych prawdziwych adresów,
-// tokenów ani wywołań. Terminy resetów liczone od "teraz", żeby odliczanie wyglądało naturalnie.
+// Same zmyślone konta w domenie example.com — żadnych prawdziwych adresów, tokenów ani wywołań.
+// Terminy resetów liczone od "teraz", żeby odliczanie w panelu wyglądało naturalnie.
 const MIN = 60e3, H = 60 * MIN, D = 24 * H;
 
 export const DEMO_PREFIX = 'demo-';
 export const jestDemo = nazwa => String(nazwa || '').startsWith(DEMO_PREFIX);
 
-const MODELE = ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-5.6-sol', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-image-2'];
+const MODELE = {
+  claude: ['claude-fable-5-1', 'claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5', 'claude-sonnet-5'],
+  codex: ['gpt-6.1-sol', 'gpt-6-astra', 'gpt-6-sol', 'gpt-5.6-sol', 'gpt-5.5', 'gpt-image-2'],
+};
 
-// [e-mail, plan, [5 h: pozostało %, reset za], [tydzień: pozostało %, reset za], zapytania ok, błędy]
+// [provider, e-mail, plan, okna: [id, etykieta, pozostalo %, reset za ms], zapytania ok, błędy]
 const KONTA = [
-  ['sprzedaz@example.com', 'pro', [91, 2 * H + 10 * MIN], [98, 5 * D + 3 * H], 412, 3],
-  ['marketing@example.com', 'plus', [38, 47 * MIN], [81, 2 * D + 6 * H], 287, 1],
-  ['biuro@example.com', 'pro', [100, 4 * H + 55 * MIN], [100, 6 * D + 22 * H], 96, 0],
-  ['zespol@example.com', 'team', [72, 1 * H + 32 * MIN], [64, 3 * D + 14 * H], 158, 2],
-  ['wlasciciel@example.com', 'plus', [0, 26 * MIN], [57, 1 * D + 9 * H], 203, 4],
+  ['claude', 'sprzedaz@example.com', null, [['five_hour', '5 godzin', 93, 1 * H + 26 * MIN], ['seven_day_fable', 'Tydzień · Fable', 100, 9 * H + 46 * MIN], ['seven_day', 'Tydzień · wszystkie modele', 64, 9 * H + 46 * MIN]], 412, 3],
+  ['claude', 'marketing@example.com', null, [['five_hour', '5 godzin', 97, 1 * H + 16 * MIN], ['seven_day_fable', 'Tydzień · Fable', 100, 4 * D + 6 * H], ['seven_day', 'Tydzień · wszystkie modele', 94, 4 * D + 6 * H]], 287, 1],
+  ['claude', 'biuro@example.com', null, [['five_hour', '5 godzin', 88, 3 * H + 5 * MIN], ['seven_day_fable', 'Tydzień · Fable', 100, 2 * D + 3 * H], ['seven_day', 'Tydzień · wszystkie modele', 90, 2 * D + 3 * H]], 158, 2],
+  ['codex', 'zespol@example.com', 'pro', [['secondary_window', 'Tydzień', 98, 5 * D + 3 * H]], 203, 0],
+  ['codex', 'wlasciciel@example.com', 'plus', [['secondary_window', 'Tydzień', 98, 2 * D + 6 * H]], 96, 1],
 ];
 
 export function demoKonta(teraz = Date.now()) {
   const odczyt = new Date(teraz - 40e3).toISOString();
-  const okno = (id, etykieta, [pozostalo, za]) => ({id, etykieta, pozostalo, reset: new Date(teraz + za).toISOString(), glowne: true});
-  return KONTA.map(([email, plan, h5, tydz, ok, bledy], i) => ({
-    id: DEMO_PREFIX + (i + 1), nazwa: DEMO_PREFIX + 'codex-' + (i + 1) + '.json', provider: 'codex', email,
+  return KONTA.map(([provider, email, plan, okna, ok, bledy], i) => ({
+    id: DEMO_PREFIX + (i + 1), nazwa: DEMO_PREFIX + provider + '-' + (i + 1) + '.json', provider, email,
     typKonta: '', disabled: false, unavailable: false, status: 'active', komunikat: '',
     ok, bledy, cooldowns: [], odczyt_swiezy: true,
     limity: {plan, odczytano: odczyt, blad: null, nieswiezy: false,
-      okna: [okno('primary_window', '5 godzin', h5), okno('secondary_window', 'Tydzień', tydz)]},
-    modele: MODELE,
+      okna: okna.map(([id, etykieta, pozostalo, za]) => ({id, etykieta, pozostalo, reset: new Date(teraz + za).toISOString(), glowne: true}))},
+    modele: MODELE[provider],
   }));
 }
 

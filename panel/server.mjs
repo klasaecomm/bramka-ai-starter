@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Panel bramki AI: logowanie hasłem (PANEL_HASLO), pule kont ChatGPT/Codex z limitami
+// Panel bramki AI: logowanie hasłem (PANEL_HASLO), pule kont ChatGPT/Codex i Claude z limitami
 // (dodawanie kont przez OAuth), modele, wspólne MCP (Executor) i instrukcja podłączenia.
 // Czyta management API CLIProxyAPI i odczyty limitów dostawców (api-call z podmianą $TOKEN$ —
 // token nigdy nie opuszcza bramki). Nie wywołuje modeli. Nie zwraca tokenów. Zero zależności npm.
@@ -10,7 +10,7 @@ import crypto from 'node:crypto';
 import {createExecutorMcp} from './executor-mcp.mjs';
 import {hasloZgodne, ipKlienta, komunikatBlokady, utworzLimitProb} from './logowanie.mjs';
 import {accountsFresh, freshRead, quotaFresh, routingReady} from './availability.mjs';
-import {ZRODLO, oknaCodex} from './limity.mjs';
+import {ZRODLA, okna} from './limity.mjs';
 import {demoKonta, demoModele, demoMcp, jestDemo} from './demo.mjs';
 
 const bezUkosnika = v => String(v || '').replace(/\/+$/, '');
@@ -29,9 +29,12 @@ const DEMO = String(process.env.DEMO || 'auto').toLowerCase();
 const COOKIE_SECURE = PANEL_ADRES.startsWith('https://') ? '; Secure' : '';
 const START = Date.now();
 
-// Bramka obsługuje wyłącznie konta ChatGPT/Codex. Innych kont (np. Claude) celowo nie obsługuje:
-// regulaminy tych dostawców zabraniają używania ich logowania w narzędziach zewnętrznych (README.md).
-const CODEX = {url: 'codex-auth-url', provider: 'codex'};
+// Konta w bramce: ChatGPT/Codex i Claude (konta Claude obsługują tylko Claude Code i Claude Desktop
+// w trybie bramki, README.md). Pozostałe kanały logowania są wyłączone w konfiguracji bramki.
+const DOSTAWCY = {
+  codex: {url: 'codex-auth-url', provider: 'codex'},
+  claude: {url: 'anthropic-auth-url', provider: 'anthropic'},
+};
 
 const executorMcp = createExecutorMcp({base: MCP_URL, publicUrl: MCP_ADRES, panelOrigin: PANEL_ADRES,
   email: process.env.MCP_ADMIN_EMAIL || '', password: process.env.MCP_ADMIN_HASLO || '',
@@ -60,7 +63,7 @@ async function odczytKont() {
   try {
     const d = await mgmt('auth-files');
     if (version !== accountReadVersion) return;
-    const rows = (d.files || []).filter(r => r.provider === CODEX.provider);
+    const rows = (d.files || []).filter(r => Object.hasOwn(DOSTAWCY, r.provider));
     stan.konta = rows.map(r => ({
       id: r.auth_index, nazwa: r.name, provider: r.provider, email: r.email || r.account || '',
       typKonta: r.account_type || '', disabled: !!r.disabled, unavailable: !!r.unavailable,
@@ -81,7 +84,7 @@ async function odczytModeliKont() {
     try {
       const d = await mgmt('auth-files/models?name=' + encodeURIComponent(k.nazwa));
       const lista = Array.isArray(d) ? d : (d.models || d.data || []);
-      stan.modeleKont[k.id] = lista.map(m => (typeof m === 'string' ? m : (m.id || m.name || ''))).filter(Boolean).filter(m => !/claude/i.test(m));
+      stan.modeleKont[k.id] = lista.map(m => (typeof m === 'string' ? m : (m.id || m.name || ''))).filter(Boolean);
       stan.odczytyModeli[k.id] = Date.now();
     } catch { stan.odczytyModeli[k.id] = 0; }
   }
@@ -101,17 +104,17 @@ async function odczytLimitowOnce(wymus = false) {
   for (const k of stan.konta) {
     const poprzedni = stan.limity[k.id];
     if (!wymus && poprzedni && poprzedni.nastepnyOdczyt > Date.now()) continue;
-    const z = ZRODLO;
+    const z = ZRODLA[k.provider];
     const wynik = {okna: [], plan: null, odczytano: null, blad: null, nieswiezy: false, nastepnyOdczyt: 0, porazki: 0};
     try {
       if (k.disabled) throw new Error('konto wylaczone');
-      const body = {authIndex: k.id, method: z.method, url: z.url, header: {Authorization: 'Bearer $TOKEN$', 'Content-Type': 'application/json'}};
+      const body = {authIndex: k.id, method: z.method, url: z.url, header: {Authorization: 'Bearer $TOKEN$', 'Content-Type': 'application/json', ...z.naglowki}};
       const r = await mgmt('api-call', {method: 'POST', body});
       const kod = r.status_code;
       if (kod === 429) throw Object.assign(new Error('Odczyt limitow: HTTP 429'), {retryAfter: Number((r.headers || r.header || {})['Retry-After'] || 60)});
       if (kod !== 200) throw new Error('Odczyt limitow: HTTP ' + kod);
       let data = r.body; if (typeof data === 'string') data = JSON.parse(data);
-      wynik.okna = oknaCodex(data);
+      wynik.okna = okna(k.provider, data);
       wynik.plan = data.plan_type || null; wynik.odczytano = new Date().toISOString();
       wynik.nastepnyOdczyt = Date.now() + z.coIleS * 1000;
     } catch (e) {
@@ -182,7 +185,7 @@ const limitProb = utworzLimitProb();
 
 // ---------- konta: dodawanie przez OAuth ----------------------------------------
 const tylkoPrawdziwe = nazwa => { if (jestDemo(nazwa)) throw Object.assign(new Error('To konto przykładowe (tryb demo) — podłącz własne przyciskiem „Połącz konto”.'), {status: 409}); };
-const dostawca = d => { if (d.dostawca !== 'codex') throw Object.assign(new Error('Bramka obsługuje wyłącznie konta ChatGPT/Codex'), {status: 400}); return CODEX; };
+const dostawca = d => { const p = Object.hasOwn(DOSTAWCY, d.dostawca) && DOSTAWCY[d.dostawca]; if (!p) throw Object.assign(new Error('Bramka obsługuje konta ChatGPT/Codex i Claude'), {status: 400}); return p; };
 async function startKonta(d) { const r = await mgmt(dostawca(d).url); return {url: r.url, state: r.state}; }
 async function dokonczKonto(d) {
   const p = dostawca(d);

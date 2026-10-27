@@ -29,13 +29,11 @@ save-cooldown-status: true
 transient-error-cooldown-seconds: 7
 auth-auto-refresh-workers: 2
 
-# Bramka obsługuje wyłącznie konta ChatGPT/Codex; pozostałe kanały logowania OAuth są wyłączone.
-# Dla Claude i Antigravity regulaminy dostawców wprost zabraniają używania ich logowania
-# w narzędziach zewnętrznych. Wykluczenie "*" odcina wszystkie modele kanału nawet wtedy,
-# gdyby ktoś dołożył plik konta do wolumenu.
+# Konta w bramce: ChatGPT/Codex i Claude. Pozostałe kanały logowania OAuth są wyłączone
+# (konta Google/Antigravity: Google blokował konta za używanie tego logowania w narzędziach
+# zewnętrznych). Wykluczenie "*" odcina wszystkie modele kanału nawet wtedy, gdyby ktoś
+# dołożył plik konta do wolumenu.
 oauth-excluded-models:
-  claude:
-    - "*"
   antigravity:
     - "*"
   aistudio:
@@ -48,6 +46,12 @@ oauth-excluded-models:
     - "*"
   meta:
     - "*"
+
+# Konta Claude obsługują tylko Claude Code i Claude Desktop w trybie bramki. Bramka nie podszywa
+# się pod te aplikacje: zapytania idą z nagłówkami prawdziwego klienta (bez maskowania).
+disable-claude-cloak-mode: true
+claude:
+  model-level-cooling: true
 
 codex:
   model-level-cooling: true

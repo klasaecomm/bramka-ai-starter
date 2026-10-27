@@ -1,8 +1,8 @@
 # klienci/ — przełączanie aplikacji na bramkę i z powrotem
 
 > [!IMPORTANT]
-> **Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude (Claude, Claude Code)
-> zalogowanych na własne konto — bramka służy do modeli innych dostawców.**
+> **Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude (Claude Code, Claude Desktop).**
+> Konta Claude w bramce obsługują tylko te aplikacje w trybie bramki.
 
 `przelacz.sh` (macOS, Linux). Domyślnie **na sucho** — pokazuje plan. Zmiany dopiero z `--zastosuj`.
 
@@ -10,11 +10,11 @@
 |---|---|
 | `./klienci/przelacz.sh` | plan dla wykrytych aplikacji |
 | `./klienci/przelacz.sh --zastosuj` | **Codex** (CLI i aplikacja): `[model_providers.bramka-ai]` + `model_provider = "bramka-ai"` w `~/.codex/config.toml` |
-| `... --claude-code --zastosuj` | **Claude Code**: modele innych dostawców w interfejsie Claude (`ANTHROPIC_BASE_URL`, modele z `/v1/models`, `apiKeyHelper`) |
-| `... --claude-desktop --zastosuj` | **Claude Desktop**: tryb 3P (gateway) z modelami innych dostawców |
+| `... --claude-code --zastosuj` | **Claude Code** przez bramkę: `ANTHROPIC_BASE_URL`, `apiKeyHelper`, modele z `/v1/models` (wybór w `/model`) |
+| `... --claude-desktop --zastosuj` | **Claude Desktop** przez bramkę: tryb 3P (gateway), modele z `/v1/models`, Claude na początku listy |
 | `--mcp <adres>/mcp --zastosuj` | wspólne MCP w Codexie, Claude Code i Claude Desktop (token: `--mcp-token-z-panelu` albo wpisany w terminalu) |
 | `--diagnostyka` | bramka, modele, panel, MCP, aktualny stan przełączenia |
-| `--cofnij` | przywraca dokładnie poprzednie wartości; Claude Code / Desktop wracają do normalnego logowania, w którym działa Claude |
+| `--cofnij` | przywraca dokładnie poprzednie wartości; Claude Code / Desktop wracają do Twojego własnego logowania |
 
 Opcje: `--bramka <adres>` (domyślnie `BRAMKA_ADRES` z `.env`), `--panel <adres>`, `--model <id>` /
 `--maly-model <id>` (Claude Code), `--bez-codex`.
@@ -25,8 +25,8 @@ Opcje: `--bramka <adres>` (domyślnie `BRAMKA_ADRES` z `.env`), `--panel <adres>
 - **Token MCP** (`bramka-ai-mcp`) — osobny; tworzysz go w panelu (MCP → Token dostępu).
 - Skrypt nie usuwa ani nie nadpisuje istniejących serwerów MCP, pluginów, hooków ani instrukcji.
   Zmienione pola zapisuje w `~/.bramka-ai/stan.json`, kopie plików w `~/.bramka-ai/kopie/`.
-- Claude Code w trybie bramki wysyła zapytania z tokenem dostępu do bramki zamiast logowania
-  claude.ai; funkcje zależne od konta Claude (np. modele Claude, konektory claude.ai) działają
-  znowu po `--cofnij`.
+- Claude Code w trybie bramki wysyła zapytania z tokenem dostępu do bramki zamiast własnego logowania
+  claude.ai i korzysta z puli kont bramki; funkcje zależne od własnego konta (np. konektory claude.ai)
+  wracają po `--cofnij`.
 - Claude Desktop (MCP w normalnym trybie) używa mostka `mcp-remote` — wymaga Node.js.
 - Windows: skryptu jeszcze nie ma; ustawienia ręcznie z zakładki „Jak podłączyć” w panelu.

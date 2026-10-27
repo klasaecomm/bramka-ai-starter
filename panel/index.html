@@ -2,7 +2,7 @@
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{MARKA}}.</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c0e10'/%3E%3Ccircle cx='23' cy='22' r='3.5' fill='%2375b8ed'/%3E%3Ctext x='13' y='23' text-anchor='middle' font-family='-apple-system,sans-serif' font-weight='700' font-size='17' fill='%23e9ebee'%3Ea%3C/text%3E%3C/svg%3E">
 <style>
-:root{color-scheme:dark;--bg:#0c0e10;--surface:#101316;--surface2:#0e1114;--line:#22262b;--line2:#272c32;--text:#e9ebee;--muted:#7d858f;--muted2:#909aa5;--blue:#75b8ed;--green:#82c5a2;--red:#e07f7f;--amber:#d6ab6e;--r:8px}
+:root{color-scheme:dark;--bg:#0c0e10;--surface:#101316;--surface2:#0e1114;--line:#22262b;--line2:#272c32;--text:#e9ebee;--muted:#7d858f;--muted2:#909aa5;--blue:#75b8ed;--orange:#dfaa83;--green:#82c5a2;--red:#e07f7f;--amber:#d6ab6e;--r:8px}
 *{box-sizing:border-box}[hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;letter-spacing:-.1px;-webkit-font-smoothing:antialiased}
 button{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}
@@ -35,6 +35,7 @@ h1{font-size:34px;letter-spacing:-1px;font-weight:570;margin:0}
 /* logo (znaki: panel/znaki.mjs, Simple Icons CC0) */
 .logo{display:inline-grid;place-items:center;width:30px;height:30px;flex-shrink:0}
 .logo i{display:block;width:22px;height:22px;background:#f3f3f3;-webkit-mask:var(--mark) center/contain no-repeat;mask:var(--mark) center/contain no-repeat}
+.logo.claude i{background:#d8a17c}
 .logo.mono{font-size:12px;font-weight:650;color:#c9d1d9;border:1px solid #39414a;border-radius:7px;width:28px;height:28px;letter-spacing:-.3px}
 /* pule */
 .pools{display:grid;grid-template-columns:repeat(var(--pule,3),minmax(0,1fr));padding:28px 0 26px;border-bottom:1px solid var(--line)}
@@ -52,7 +53,7 @@ h1{font-size:34px;letter-spacing:-1px;font-weight:570;margin:0}
 .filters{display:flex;gap:6px}
 .filter{border:1px solid transparent;background:none;color:#929aa5;padding:0 12px;height:34px;font-size:13px;border-radius:6px;display:inline-flex;align-items:center;gap:8px}
 .filter:hover{color:var(--text)}.filter.on{background:#e5e8eb;color:#18202a;border-color:#e5e8eb}
-.filter .pdot{width:5px;height:5px;border-radius:50%}.pdot.pro{background:var(--blue)}.pdot.plus{background:var(--green)}.pdot.team,.pdot.business,.pdot.enterprise{background:var(--amber)}
+.filter .pdot{width:5px;height:5px;border-radius:50%}.pdot.codex{background:var(--blue)}.pdot.claude{background:var(--orange)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
 .card{border:1px solid var(--line2);border-radius:9px;background:var(--surface);padding:22px;min-height:238px;display:flex;flex-direction:column;transition:border-color .2s}
 .card:hover{border-color:#43505e}
@@ -112,6 +113,8 @@ dialog h2{margin:0 0 6px;font-size:20px;font-weight:570;display:flex;align-items
 .steps{list-style:none;padding:0;margin:8px 0 16px;counter-reset:k}.steps li{counter-increment:k;position:relative;padding:0 0 14px 34px;color:#c5ccd3;font-size:14px;line-height:1.5}
 .steps li:before{content:counter(k);position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;border:1px solid #3a424b;color:#d6dde3;font-size:12px;display:grid;place-items:center}
 .steps code{font-size:12px;background:#1a1e23;padding:1px 5px;border-radius:4px}
+.choice{display:grid;gap:10px;margin:16px 0 4px}.choice button{display:flex;align-items:center;gap:14px;text-align:left;padding:14px 16px;border:1px solid var(--line2);border-radius:9px;background:var(--surface);color:var(--text)}
+.choice button:hover{border-color:#4a5766}.choice small{display:block;color:var(--muted);font-size:12px;margin-top:3px}
 .field{margin:12px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
 .dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
 .err{color:var(--red);font-size:13px;min-height:18px;margin-top:8px}.err.info{color:var(--muted)}
@@ -150,7 +153,7 @@ dialog h2{margin:0 0 6px;font-size:20px;font-weight:570;display:flex;align-items
 <section data-sekcja="modele" hidden>
  <div class="title-row"><h1>Modele</h1></div>
  <div class="connection-row"><div id="modele-info"></div><span id="routing"></span></div>
- <div class="section" id="modele-tabele"></div>
+ <div class="two section" id="modele-tabele"></div>
 </section>
 
 <section data-sekcja="mcp" hidden>
@@ -170,17 +173,21 @@ dialog h2{margin:0 0 6px;font-size:20px;font-weight:570;display:flex;align-items
    <div class="code"><button class="text-button" data-kopiuj-el="#cmd-codex">Kopiuj</button><pre id="cmd-codex"></pre></div>
    <div class="label">Ręcznie — ~/.codex/config.toml</div><div class="code"><button class="text-button" data-kopiuj-el="#cfg-codex">Kopiuj</button><pre id="cfg-codex"></pre></div></div>
   <div class="box"><h3>Claude Code i Claude Desktop</h3>
-   <div class="notice"><b>Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude (Claude, Claude Code) zalogowanych na własne konto — bramka służy do modeli innych dostawców.</b></div>
-   <p>Opcjonalnie: modele innych dostawców (np. GPT) w interfejsie Claude Code lub Claude Desktop (tryb 3P). Powrót do normalnego logowania, w którym działa Claude: <code>--cofnij</code>.</p>
-   <div class="code"><button class="text-button" data-kopiuj-el="#cmd-claude">Kopiuj</button><pre id="cmd-claude"></pre></div></div>
+   <div class="notice"><b>Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude (Claude Code, Claude Desktop).</b> Konta Claude w bramce obsługują tylko te aplikacje w trybie bramki.</div>
+   <p>Claude Code i Claude Desktop (tryb 3P) korzystają wtedy z puli kont bramki. Skrypt trzyma token w Keychainie; <code>--cofnij</code> przywraca Twoje własne logowanie.</p>
+   <div class="code"><button class="text-button" data-kopiuj-el="#cmd-claude">Kopiuj</button><pre id="cmd-claude"></pre></div>
+   <div class="label">Ręcznie — ~/.claude/settings.json</div><div class="code"><button class="text-button" data-kopiuj-el="#cfg-claude">Kopiuj</button><pre id="cfg-claude"></pre></div></div>
  </div>
- <div class="section box"><h3>Wspólne MCP</h3><p>Jeden adres i jeden token dla wszystkich serwerów MCP z zakładki MCP. Działa w Codexie i w Claude Code zalogowanym normalnie na własne konto.</p>
+ <div class="section box"><h3>Wspólne MCP</h3><p>Jeden adres i jeden token dla wszystkich serwerów MCP z zakładki MCP. Działa w Codexie, Claude Code i Claude Desktop — z bramką i bez niej.</p>
   <div class="two"><div><div class="label">Skrypt (Codex, Claude Code, Claude Desktop)</div><div class="code"><button class="text-button" data-kopiuj-el="#cmd-mcp">Kopiuj</button><pre id="cmd-mcp"></pre></div></div>
   <div><div class="label">Ręcznie — Claude Code</div><div class="code"><button class="text-button" data-kopiuj-el="#cfg-mcp-claude">Kopiuj</button><pre id="cfg-mcp-claude"></pre></div></div></div></div>
 </section>
 </div><div id="toast" role="status"></div></main>
 
-<dialog id="d-konto"><h2><span class="logo" id="dk-logo"><i></i></span><span id="dk-tytul">Połącz konto ChatGPT / Codex</span></h2><p>Logujesz konto ChatGPT (Plus, Pro, Business) raz — potem bramka sama odświeża dostęp i rozkłada pracę między konta.</p>
+<dialog id="d-wybor"><h2>Połącz konto</h2><p>Każde konto w bramce musi być Twoje. Konta Claude obsługują tylko Claude Code i Claude Desktop w trybie bramki.</p>
+<div class="choice" id="dw-lista"></div>
+<div class="dialog-actions"><button class="button" data-zamknij>Anuluj</button></div></dialog>
+<dialog id="d-konto"><h2><span class="logo" id="dk-logo"><i></i></span><span id="dk-tytul">Połącz konto</span></h2><p>Logujesz konto raz — potem bramka sama odświeża dostęp i rozkłada pracę między konta.</p>
 <ol class="steps"><li>Kliknij <b>Otwórz logowanie</b> i zaloguj się na <span id="dk-dostawca"></span> kontem, które chcesz dodać. Zatwierdź dostęp.</li>
 <li>Przeglądarka pokaże błąd strony <code>localhost</code> — <b>to normalne</b>. Skopiuj <b>cały adres</b> z paska.</li><li>Wklej go poniżej i kliknij <b>Dodaj konto</b>.</li></ol>
 <a class="button" id="dk-link" target="_blank" rel="noopener noreferrer">Otwórz logowanie ↗</a>
@@ -209,16 +216,10 @@ import {accountsFresh, quotaFresh, routingReady} from '/availability.mjs';
 import {ZNAKI, znakUrl} from '/znaki.mjs';
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-// Bramka obsługuje wyłącznie konta ChatGPT/Codex (README.md).
-const P={codex:{marka:'ChatGPT',kolor:'var(--blue)',znak:'openai',strona:'chatgpt.com'}};
-const PLANY={pro:'Pro',prolite:'Pro Lite',plus:'Plus',team:'Business',business:'Business',enterprise:'Enterprise',free:'Free'};
-const planKonta=k=>(k.limity&&k.limity.plan)||'';
-// Pule z danych Codexa: okno 5 godzin i tydzień dla wszystkich kont, osobno tydzień kont Pro
-// (największe limity; pokazywane, gdy w bramce są konta Pro i inne plany).
-const PULE=[{tytul:'Codex · 5 godzin',podpis:'Pozostało w oknie 5 godzin',okno:w=>/^5 godzin/.test(w.etykieta)},
- {tytul:'Codex · tydzień',podpis:'Pozostały limit tygodniowy',okno:w=>/^Tydzie/.test(w.etykieta)},
- {tytul:'Plan Pro · tydzień',podpis:'Konta Pro — największe limity tygodniowe',okno:w=>/^Tydzie/.test(w.etykieta),konta:k=>planKonta(k)==='pro',
-  pokaz:kk=>kk.some(k=>planKonta(k)==='pro')&&kk.some(k=>planKonta(k)!=='pro')}];
+// Konta w bramce: ChatGPT/Codex i Claude. Konta Claude obsługują tylko Claude Code i Claude Desktop w trybie bramki.
+const P={codex:{nazwa:'Codex',marka:'ChatGPT',kolor:'var(--blue)',znak:'openai',strona:'chatgpt.com',opis:'Konto ChatGPT (Plus, Pro, Business) — modele GPT i Codex'},
+ claude:{nazwa:'Claude',marka:'Claude',kolor:'var(--orange)',znak:'claude',strona:'claude.ai',opis:'Konto Claude — dla Claude Code i Claude Desktop w trybie bramki'}};
+const PLANY={pro:'Pro',prolite:'Pro Lite',plus:'Plus',max:'Max',team:'Business',business:'Business',enterprise:'Enterprise',free:'Free'};
 const markStyle=slug=>{const u=znakUrl(slug);return u?` style="--mark:url('${u}')"`:''};
 const logo=p=>`<span class="logo ${p}" aria-hidden="true"><i${markStyle(P[p]?.znak)}></i></span>`;
 let S=null,M=null,filtr='all',prywatnie=localStorage.getItem('bramka-priv')!=='0',widok='konta';
@@ -231,21 +232,28 @@ $('#login-form').onsubmit=async ev=>{ev.preventDefault();$('#login-err').textCon
 $('#wyloguj').onclick=async()=>{await fetch('/api/wyloguj');location.reload()};
 function za(s){if(!s)return'Brak terminu';let t=Math.max(0,(new Date(s)-Date.now())/1000|0);if(!t)return'Oczekiwanie na odczyt';const d=t/86400|0,h=t%86400/3600|0,m=t%3600/60|0;return d?`${d} ${d===1?'dzień':'dni'} ${h} godz.`:h?`${h} godz. ${m} min`:`${m} min`}
 const znane=w=>w&&typeof w.pozostalo==='number';
-const okna=k=>((k.limity&&k.limity.okna)||[]).filter(w=>w.glowne);
-function dostepnosc(k){const g=okna(k),zbl=g.filter(w=>w.pozostalo===0||w.zablokowane),pelne=g.length>0&&g.every(znane);
+// Okna limitów: Claude = 5 godzin / tydzień Fable / tydzień wszystkie modele, Codex = limit tygodniowy.
+function okna(k,zakres){const o=(k.limity&&k.limity.okna)||[];
+ if(k.provider!=='claude'){const g=o.filter(w=>w.glowne),t=g.filter(w=>/^Tydzie/.test(w.etykieta));return t.length?t:g}
+ const def=[['five_hour','5 godzin'],['seven_day_fable','Tydzień · Fable'],['seven_day','Tydzień · wszystkie modele']].filter(([id])=>zakres!=='inne'||id!=='seven_day_fable');
+ return def.map(([id,et])=>({...(o.find(w=>w.id===id)||{pozostalo:null,reset:null}),id,etykieta:et}))}
+function dostepnosc(k,zakres){const g=okna(k,zakres),zbl=g.filter(w=>w.pozostalo===0||w.zablokowane),pelne=g.length>0&&g.every(znane);
  const swieze=accountsFresh(S)&&quotaFresh(k),routing=routingReady(k,'*');
  return {g,zbl,pelne,swieze,routing,gotowe:swieze&&pelne&&!zbl.length&&routing===true,reset:zbl.length?zbl.map(w=>w.reset).filter(Boolean).sort().pop():null}}
+function tydz(k,zakres){const g=okna(k,zakres);if(k.provider==='claude')return g.find(w=>w.id===(zakres==='inne'?'seven_day':'seven_day_fable'));return g.find(w=>/^Tydzie/.test(w.etykieta))||g[g.length-1]}
 const ileKont=n=>n+' '+(n===1?'konto':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'konta':'kont');
-function pula(def){const p='codex',k=S.konta.filter(x=>!x.disabled&&(!def.konta||def.konta(x))),ch=k.map(dostepnosc),w=k.map((x,i)=>ch[i].swieze?okna(x).find(def.okno):null),zn=w.filter(znane),suma=zn.reduce((a,x)=>a+x.pozostalo,0),gotowe=ch.filter(c=>c.gotowe).length;
- return `<article class="pool" style="--accent:${P[p].kolor}"><div class="pool-head">${logo(p)}<h2>${e(def.tytul)}</h2><small>${ileKont(k.length)}</small></div>
- <div class="pool-value"><strong>${zn.length?fmt(Math.round(suma))+'%':'—'}</strong><span>${k.length?'z '+k.length*100+'%':'brak kont'}</span></div><div class="pool-caption">${e(def.podpis)}</div>
+// Pule: Codex (tydzień), Claude (wspólny tydzień wszystkich modeli) i osobno Fable 5.1 (tydzień Fable).
+const PULE=[['codex',null,'Codex','Pozostały limit tygodniowy'],['claude','inne','Claude','Wspólny limit tygodniowy · wszystkie modele'],['claude',null,'Fable 5.1','Tydzień Fable · pozostało na kontach']];
+function pula([p,zakres,tytul,podpis]){const k=S.konta.filter(x=>x.provider===p&&!x.disabled),ch=k.map(x=>dostepnosc(x,zakres)),w=k.map((x,i)=>ch[i].swieze?tydz(x,zakres):null),zn=w.filter(znane),suma=zn.reduce((a,x)=>a+x.pozostalo,0),gotowe=ch.filter(c=>c.gotowe).length;
+ return `<article class="pool" style="--accent:${P[p].kolor}"><div class="pool-head">${logo(p)}<h2>${e(tytul)}</h2><small>${ileKont(k.length)}</small></div>
+ <div class="pool-value"><strong>${zn.length?fmt(Math.round(suma))+'%':'—'}</strong><span>${k.length?'z '+k.length*100+'%':'brak kont'}</span></div><div class="pool-caption">${e(podpis)}</div>
  <div class="pool-bar">${k.length?w.map((x,i)=>`<div class="seg ${znane(x)?'':'unknown'} ${ch[i].zbl.length||ch[i].routing===false?'blocked':''}" title="${e((prywatnie?'Konto '+(S.konta.indexOf(k[i])+1):k[i].email)+': '+(znane(x)?fmt(x.pozostalo)+'%':'brak aktualnego odczytu'))}"><i style="width:${znane(x)?x.pozostalo:0}%"></i></div>`).join(''):'<div class="seg unknown"></div>'}</div>
  <div class="pool-footer">${k.length?`${gotowe}/${k.length} kont dostępnych`:'Połącz konto przyciskiem u góry'}</div></article>`}
 function meter(w){const z=znane(w),zbl=w.pozostalo===0||w.zablokowane;
  return `<div class="meter ${zbl?'exhausted':''}"><div class="meter-label"><span>${e(w.etykieta)}</span><strong>${z?fmt(w.pozostalo)+'% pozostało':'Brak odczytu'}</strong></div><div class="meter-bar ${z?'':'unknown'}"><i style="width:${z?w.pozostalo:0}%"></i></div><div class="meter-reset">${zbl?'<b>Limit wykorzystany</b> · ':''}${w.reset?'Reset za '+za(w.reset):'Termin resetu nieznany'}</div></div>`}
-function konto(k,i){const L=k.limity||{},c=dostepnosc(k);
- const stan=k.disabled?['Wyłączone','error']:k.unavailable&&/unauthorized/i.test(k.komunikat)?['Wylogowane — połącz ponownie','error']:!c.swieze?['Brak aktualnego odczytu','limited']:c.zbl.length?['Limit wykorzystany','limited']:c.routing===false?['Chwilowa przerwa po błędzie','limited']:!c.pelne?['Oczekiwanie na odczyt limitów','']:['Gotowe',''];
- const plan=L.plan?(PLANY[L.plan]||L.plan):'Subskrypcja';
+function konto(k,i){const L=k.limity||{},c=dostepnosc(k),claude=k.provider==='claude';
+ const stan=k.disabled?['Wyłączone','error']:k.unavailable&&/unauthorized/i.test(k.komunikat)?['Wylogowane — połącz ponownie','error']:!c.swieze?['Brak aktualnego odczytu','limited']:c.zbl.length?[claude?'Fable 5.1 niedostępny':'Limit wykorzystany','limited']:c.routing===false?['Chwilowa przerwa po błędzie','limited']:!c.pelne?['Oczekiwanie na odczyt limitów','']:[claude?'Fable 5.1 dostępny':'Gotowe',''];
+ const plan=L.plan?(PLANY[L.plan]||L.plan):(k.typKonta||'Subskrypcja');
  const resety=c.g.filter(w=>w.reset).sort((a,b)=>new Date(a.reset)-new Date(b.reset)),reset=c.zbl.length?c.reset:resety[0]&&resety[0].reset;
  return `<article class="card" style="--accent:${P[k.provider].kolor}"><div class="card-head"><div><div class="card-name">${e(prywatnie?'Konto '+(i+1):(k.email||k.nazwa))}</div><div class="card-sub">${P[k.provider].marka} · ${e(plan)}</div></div>${logo(k.provider)}</div>
  <div class="badge ${stan[1]}"><span class="dot ${stan[1]==='error'?'off':stan[1]==='limited'?'amber':''}"></span>${stan[0]}</div>
@@ -253,13 +261,10 @@ function konto(k,i){const L=k.limity||{},c=dostepnosc(k);
  <div class="card-bottom"><div><span>${c.zbl.length?'Koniec blokady':'Najbliższy reset'}</span><strong>${za(reset)}</strong></div><div class="links"><button class="text-button" data-wlacz="${e(k.nazwa)}" data-stan="${k.disabled?1:0}">${k.disabled?'Włącz':'Wyłącz'}</button><button class="text-button danger" data-usun="${e(k.nazwa)}" data-email="${e(k.email)}">Usuń</button></div></div></article>`}
 const demoPill=()=>S&&S.demo?'<span class="pill">Tryb demo · dane przykładowe</span>':'';
 function rysujKonta(){if(!S)return;$('#n-konta').textContent=S.konta.length;
- const aktywne=S.konta.filter(k=>!k.disabled),pule=PULE.filter(d=>!d.pokaz||d.pokaz(aktywne));
- $('#pule').style.setProperty('--pule',pule.length);$('#pule').innerHTML=pule.map(pula).join('');
- const plany=[...new Set(S.konta.map(planKonta).filter(Boolean))].sort((a,b)=>Object.keys(PLANY).indexOf(a)-Object.keys(PLANY).indexOf(b));
- if(filtr!=='all'&&!plany.includes(filtr))filtr='all';
- $('#filtry').innerHTML=`<button class="filter ${filtr==='all'?'on':''}" data-f="all">Wszystkie konta <span style="opacity:.6">${S.konta.length}</span></button>`+(plany.length>1?plany.map(pl=>`<button class="filter ${filtr===pl?'on':''}" data-f="${e(pl)}"><i class="pdot ${e(pl)}"></i>${e(PLANY[pl]||pl)}</button>`).join(''):'');
+ $('#pule').style.setProperty('--pule',PULE.length);$('#pule').innerHTML=PULE.map(pula).join('');
+ $('#filtry').innerHTML=`<button class="filter ${filtr==='all'?'on':''}" data-f="all">Wszystkie konta <span style="opacity:.6">${S.konta.length}</span></button>`+['codex','claude'].map(p=>`<button class="filter ${filtr===p?'on':''}" data-f="${p}"><i class="pdot ${p}"></i>${P[p].nazwa}</button>`).join('');
  $$('#filtry [data-f]').forEach(b=>b.onclick=()=>{filtr=b.dataset.f;rysujKonta()});
- const lista=S.konta.map((k,i)=>[k,i]).filter(([k])=>filtr==='all'||planKonta(k)===filtr);
+ const lista=S.konta.map((k,i)=>[k,i]).filter(([k])=>filtr==='all'||k.provider===filtr);
  $('#konta').innerHTML=lista.map(([k,i])=>konto(k,i)).join('')||`<div class="empty">Nie ma jeszcze kont.<br>Kliknij <b>Połącz konto</b> — logowanie zajmuje minutę.</div>`;
  const px=S.proxy||{};
  $('#stan-kont').innerHTML=(px.ok?'<span class="dot"></span>Proxy działa':`<span class="dot off"></span>${px.blad?'Proxy nie odpowiada: '+e(px.blad):'Brak aktualnego odczytu proxy'}`)+demoPill();
@@ -270,13 +275,14 @@ function rysujKonta(){if(!S)return;$('#n-konta').textContent=S.konta.length;
 function rysujModele(){if(!S)return;$('#n-modele').textContent=S.modele.length;const r=S.routing||{};
  $('#modele-info').innerHTML=`<span class="dot ${S.proxy?.ok?'':'off'}"></span>${S.modele.length} modeli z ${ileKont(S.konta.filter(k=>!k.disabled).length)}${demoPill()}`;
  $('#routing').textContent=r.strategia?`Routing: ${r.strategia}${r.affinity?' + rozmowa→konto ('+r.affinityTtl+')':''} · ponowienia: ${r.retry??'?'}`:'';
- const l=[...S.modele].sort((a,b)=>a.model.localeCompare(b.model));
- $('#modele-tabele').innerHTML=`<div><div class="section-title">${logo('codex')}ChatGPT / Codex</div><div class="table-wrap"><table><thead><tr><th>Model</th><th class="n">Kont</th><th>Stan</th></tr></thead><tbody>${l.map(m=>`<tr><td>${e(m.model)}</td><td class="n">${m.kont}</td><td><span class="dot ${m.dostepny?'':m.dostepny===null?'amber':'off'}"></span> ${m.dostepny===null?'brak aktualnego odczytu':m.dostepny?'dostępny':'brak dostępnego konta'}</td></tr>`).join('')||'<tr><td colspan=3 class="muted">Połącz konto, żeby zobaczyć modele</td></tr>'}</tbody></table></div></div>`}
+ $('#modele-tabele').innerHTML=[['codex','ChatGPT / Codex'],['claude','Claude']].map(([p,t])=>{const l=S.modele.filter(m=>m.provider===p).sort((a,b)=>a.model.localeCompare(b.model));
+  return `<div><div class="section-title">${logo(p)}${e(t)}</div><div class="table-wrap"><table><thead><tr><th>Model</th><th class="n">Kont</th><th>Stan</th></tr></thead><tbody>${l.map(m=>`<tr><td>${e(m.model)}</td><td class="n">${m.kont}</td><td><span class="dot ${m.dostepny?'':m.dostepny===null?'amber':'off'}"></span> ${m.dostepny===null?'brak aktualnego odczytu':m.dostepny?'dostępny':'brak dostępnego konta'}</td></tr>`).join('')||'<tr><td colspan=3 class="muted">Połącz konto, żeby zobaczyć modele</td></tr>'}</tbody></table></div></div>`}).join('')}
 function rysujPodlacz(){if(!S)return;const a=S.adresModeli,m=S.adresMcp;$('#adres-modeli').textContent=a;$('#adres-mcp').textContent=m;
  $('#logo-codex-box i').setAttribute('style',`--mark:url('${znakUrl('openai')}')`);
  $('#cmd-codex').textContent=`./klienci/przelacz.sh --bramka ${a}\n./klienci/przelacz.sh --bramka ${a} --zastosuj\n./klienci/przelacz.sh --cofnij`;
  $('#cfg-codex').textContent=`model_provider = "bramka-ai"\n\n[model_providers.bramka-ai]\nname = "Bramka AI"\nbase_url = "${a}/v1"\nwire_api = "responses"\nsupports_websockets = false\n\n# pomocnik czyta token z Keychaina (tworzy go klienci/przelacz.sh)\n[model_providers.bramka-ai.auth]\ncommand = "/Users/<ty>/.bramka-ai/token-bramki.sh"`;
  $('#cmd-claude').textContent=`./klienci/przelacz.sh --bramka ${a} \\\n    --claude-code --zastosuj\n./klienci/przelacz.sh --bramka ${a} \\\n    --claude-desktop --zastosuj\n./klienci/przelacz.sh --cofnij`;
+ $('#cfg-claude').textContent=JSON.stringify({env:{ANTHROPIC_BASE_URL:a,CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY:'1',CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS:'1'},apiKeyHelper:'~/.bramka-ai/token-bramki.sh'},null,2);
  $('#cmd-mcp').textContent=`./klienci/przelacz.sh --mcp ${m} --zastosuj\n# token MCP: zakładka MCP → Token dostępu`;
  $('#cfg-mcp-claude').textContent=`claude mcp add-json --scope user bramka-mcp \\\n  '{"type":"http","url":"${m}",\n    "headersHelper":"~/.bramka-ai/naglowki-mcp.sh"}'`}
 let odswiezTrwa=null;
@@ -322,11 +328,12 @@ if(TYT[location.hash.slice(1)])pokaz(location.hash.slice(1));
 function priv(){$('#prywatnosc').title=prywatnie?'Pokaż e-maile':'Ukryj e-maile'}priv();
 $('#prywatnosc').onclick=()=>{prywatnie=!prywatnie;localStorage.setItem('bramka-priv',prywatnie?'1':'0');priv();rysujKonta()};
 $('#odswiez').onclick=async ev=>{const b=ev.currentTarget;b.disabled=true;try{await api('odswiez',{});await odswiez();toast('Limity odświeżone')}catch(x){toast(x.message)}finally{b.disabled=false}};
-// Połącz konto: logowanie OAuth ChatGPT z wklejeniem adresu powrotu.
+// Połącz konto: wybór ChatGPT / Claude, potem logowanie OAuth z wklejeniem adresu powrotu.
 let dk=null;
-$('#polacz').onclick=ev=>dodaj(ev.currentTarget);
-async function dodaj(b){b.disabled=true;try{const r=await api('konta/start',{dostawca:'codex'});dk={dostawca:'codex',state:r.state};
- $('#dk-logo').className='logo codex';$('#dk-logo i').setAttribute('style',`--mark:url('${znakUrl(P.codex.znak)}')`);$('#dk-dostawca').textContent=P.codex.strona;$('#dk-link').href=r.url;$('#dk-adres').value='';$('#dk-err').textContent='';$('#d-konto').showModal()}catch(x){toast(x.message)}finally{b.disabled=false}}
+$('#polacz').onclick=()=>{$('#dw-lista').innerHTML=['codex','claude'].map(p=>`<button data-dodaj="${p}">${logo(p)}<span><b>${p==='codex'?'ChatGPT / Codex':'Claude'}</b><small>${e(P[p].opis)}</small></span></button>`).join('');
+ $$('#dw-lista [data-dodaj]').forEach(b=>b.onclick=()=>{$('#d-wybor').close();dodaj(b.dataset.dodaj,b)});$('#d-wybor').showModal()};
+async function dodaj(p,b){b.disabled=true;try{const r=await api('konta/start',{dostawca:p});dk={dostawca:p,state:r.state};
+ $('#dk-logo').className='logo '+p;$('#dk-logo i').setAttribute('style',`--mark:url('${znakUrl(P[p].znak)}')`);$('#dk-tytul').textContent='Połącz konto '+(p==='codex'?'ChatGPT / Codex':'Claude');$('#dk-dostawca').textContent=P[p].strona;$('#dk-link').href=r.url;$('#dk-adres').value='';$('#dk-err').textContent='';$('#d-konto').showModal()}catch(x){toast(x.message)}finally{b.disabled=false}}
 async function anulujDk(){if(dk)await api('konta/anuluj',{state:dk.state}).catch(()=>{});dk=null}
 $('#dk-anuluj').onclick=()=>{$('#d-konto').close()};$('#d-konto').addEventListener('close',anulujDk);
 $('#dk-ok').onclick=async ev=>{const b=ev.currentTarget;b.disabled=true;$('#dk-err').className='err info';$('#dk-err').textContent='Sprawdzam logowanie…';try{await api('konta/dokoncz',{...dk,adres:$('#dk-adres').value});dk=null;$('#d-konto').close();toast('Konto dodane');await odswiez()}catch(x){$('#dk-err').className='err';$('#dk-err').textContent=x.message}finally{b.disabled=false}};

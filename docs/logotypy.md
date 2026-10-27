@@ -7,6 +7,7 @@ należą do ich właścicieli; panel używa ich tylko do rozpoznania usługi, be
 
 | Usługa | Plik źródłowy |
 |---|---|
+| Claude (konta Claude) | `simple-icons@16.36.0/icons/claude.svg` |
 | OpenAI (konta Codex, OpenAI Docs) | `simple-icons@15.0.0/icons/openai.svg` — w wersji 16 usunięty z Simple Icons |
 | Stripe, Shopify, Meta, Resend, ElevenLabs, Notion, Cloudflare, GitHub, Supabase | `simple-icons@16.36.0/icons/<nazwa>.svg` |
 
