@@ -1,0 +1,79 @@
+# Konfiguracja CLIProxyAPI (szablon). Sekretów tu nie ma: start.sh dopisuje tokeny
+# dostępu z .env (TOKENY_DOSTEPU) i zapisuje gotowy plik w wolumenie /dane.
+# Klucz zarządzania przychodzi z env MANAGEMENT_PASSWORD (docker-compose.yml).
+# Zmiana ustawień = edycja tego pliku + `docker compose restart bramka`.
+host: "0.0.0.0"
+port: 8317
+
+remote-management:
+  # Panel łączy się z innego kontenera; dostęp chroni klucz zarządzania.
+  allow-remote: true
+  secret-key: ""
+  # Mamy własny panel — wbudowany Management Center nie jest pobierany ani wystawiany.
+  disable-control-panel: true
+
+auth-dir: "/dane/auth"
+debug: false
+logging-to-file: false
+request-log: false
+error-logs-max-files: 3
+usage-statistics-enabled: true
+
+# Ponowienia tylko przed pierwszym bajtem odpowiedzi (na innym koncie);
+# rozpoczęta odpowiedź nigdy nie jest odtwarzana.
+request-retry: 2
+max-retry-credentials: 0
+max-retry-interval: 10
+disable-cooling: false
+save-cooldown-status: true
+transient-error-cooldown-seconds: 7
+auth-auto-refresh-workers: 2
+
+# Bramka obsługuje wyłącznie konta ChatGPT/Codex; pozostałe kanały logowania OAuth są wyłączone.
+# Dla Claude i Antigravity regulaminy dostawców wprost zabraniają używania ich logowania
+# w narzędziach zewnętrznych. Wykluczenie "*" odcina wszystkie modele kanału nawet wtedy,
+# gdyby ktoś dołożył plik konta do wolumenu.
+oauth-excluded-models:
+  claude:
+    - "*"
+  antigravity:
+    - "*"
+  aistudio:
+    - "*"
+  vertex:
+    - "*"
+  kimi:
+    - "*"
+  xai:
+    - "*"
+  meta:
+    - "*"
+
+codex:
+  model-level-cooling: true
+  # OpenAI potrafi zgłosić przeciążenie w środku odpowiedzi HTTP 200; bramka trzyma
+  # nagłówki do pierwszej treści i w razie błędu ponawia na innym koncie.
+  stream-bootstrap-buffering: true
+  stream-bootstrap-timeout: "20s"
+
+disable-image-generation: false
+
+quota-exceeded:
+  switch-project: true
+  switch-preview-model: false
+
+routing:
+  # Nowe rozmowy rozkładają się po kontach; jedna rozmowa trzyma jedno konto przez 1 h
+  # (cache promptów), a limit/błąd przełącza na następne konto.
+  strategy: "round-robin"
+  session-affinity: true
+  session-affinity-ttl: "1h"
+  session-affinity-subagents: false
+
+streaming:
+  keepalive-seconds: 15
+  bootstrap-retries: 1
+
+ws-auth: true
+pprof:
+  enable: false

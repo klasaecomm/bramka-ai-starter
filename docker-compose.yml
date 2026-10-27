@@ -1,0 +1,90 @@
+# Bramka AI: modele (CLIProxyAPI) + wspólne MCP (Executor) + panel.
+# Start: ./przygotuj.sh && docker compose up -d   (szczegóły: README.md, AGENTS.md)
+#
+# Domyślnie wszystko słucha tylko na tym komputerze (127.0.0.1).
+# Wystawienie na serwer z HTTPS: docs/vps.md (Caddy, nakładka docker-compose.vps.yml).
+name: bramka-ai
+
+services:
+  # Bramka modeli: jeden adres dla Codexa, Claude Code (tryb gateway) i innych klientów.
+  # Oficjalny obraz upstream, przypięty wersją i skrótem (ta sama wersja bazowa co nasz klaster).
+  bramka:
+    image: eceasy/cli-proxy-api:v7.3.15@sha256:86032129fa65496428752ec6e5c7480f07fde137160b728cd850cc65e9eaa391
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/konfiguracja/start.sh"]
+    environment:
+      # Klucz zarządzania: panel używa go do management API. Upstream czyta go z env,
+      # więc nie trafia do pliku konfiguracji.
+      MANAGEMENT_PASSWORD: ${KLUCZ_ZARZADZANIA:?uruchom ./przygotuj.sh}
+      # Tokeny dostępu do bramki (po przecinku, osobny dla każdej osoby/komputera).
+      TOKENY_DOSTEPU: ${TOKENY_DOSTEPU:?uruchom ./przygotuj.sh}
+      WRITABLE_PATH: /dane
+      HOME: /dane
+      TZ: ${TZ:-Europe/Warsaw}
+    volumes:
+      - ./konfiguracja/bramka:/konfiguracja:ro
+      - bramka-dane:/dane
+    ports:
+      - "${ADRES_NASLUCHU:-127.0.0.1}:${BRAMKA_PORT:-8317}:8317"
+    healthcheck:
+      test: ["CMD", "bash", "-c", "exec 3<>/dev/tcp/127.0.0.1/8317 && printf 'GET /healthz HTTP/1.0\\r\\n\\r\\n' >&3 && head -1 <&3 | grep -q ' 200 '"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  # Wspólne serwery MCP pod jednym adresem: ${MCP_ADRES}/mcp, token per osoba.
+  # Ten sam obraz i digest co na naszym klastrze.
+  executor:
+    image: ghcr.io/usefulsoftwareco/executor-selfhost:1.6.10@sha256:b9e001775d3eb7d662d347c8f7054333c78c1a4fd97cb5a86dc1d1d1406093b9
+    restart: unless-stopped
+    environment:
+      EXECUTOR_HOST: 0.0.0.0
+      PORT: "4788"
+      EXECUTOR_DATA_DIR: /data
+      EXECUTOR_WEB_BASE_URL: ${MCP_ADRES:-http://localhost:4788}
+      EXECUTOR_ORG_NAME: ${FIRMA:-Moja firma}
+      EXECUTOR_ORG_SLUG: ${FIRMA_SLUG:-firma}
+      EXECUTOR_BOOTSTRAP_ADMIN_NAME: ${ADMIN_NAZWA:-Administrator}
+      EXECUTOR_BOOTSTRAP_ADMIN_EMAIL: ${ADMIN_EMAIL:?uruchom ./przygotuj.sh}
+      EXECUTOR_BOOTSTRAP_ADMIN_PASSWORD: ${ADMIN_HASLO:?uruchom ./przygotuj.sh}
+      # Szyfruje tokeny połączeń MCP w bazie. Nie zmieniaj po starcie (utracisz połączenia).
+      EXECUTOR_SECRET_KEY: ${EXECUTOR_SECRET_KEY:?uruchom ./przygotuj.sh}
+      BETTER_AUTH_SECRET: ${EXECUTOR_SESJA:?uruchom ./przygotuj.sh}
+    volumes:
+      - executor-dane:/data
+    ports:
+      - "${ADRES_NASLUCHU:-127.0.0.1}:${MCP_PORT:-4788}:4788"
+    # Healthcheck (/api/health) jest wbudowany w obraz.
+
+  # Panel: konta (pule i limity), modele, MCP, jak podłączyć. Node 22, zero zależności.
+  panel:
+    build: ./panel
+    image: bramka-ai-panel:lokalny
+    restart: unless-stopped
+    depends_on:
+      bramka:
+        condition: service_started
+      executor:
+        condition: service_started
+    environment:
+      PANEL_NAZWA: ${PANEL_NAZWA:-agents}
+      PANEL_HASLO: ${PANEL_HASLO:?uruchom ./przygotuj.sh}
+      PANEL_SESJA: ${PANEL_SESJA:?uruchom ./przygotuj.sh}
+      PANEL_ADRES: ${PANEL_ADRES:-http://localhost:8080}
+      BRAMKA_URL: http://bramka:8317
+      BRAMKA_ADRES: ${BRAMKA_ADRES:-http://localhost:8317}
+      KLUCZ_ZARZADZANIA: ${KLUCZ_ZARZADZANIA}
+      MCP_URL: http://executor:4788
+      MCP_ADRES: ${MCP_ADRES:-http://localhost:4788}
+      MCP_ADMIN_EMAIL: ${ADMIN_EMAIL}
+      MCP_ADMIN_HASLO: ${ADMIN_HASLO}
+      FIRMA_SLUG: ${FIRMA_SLUG:-firma}
+      # auto = dane przykładowe, dopóki nie podłączysz pierwszego konta / MCP; 1 = zawsze; 0 = nigdy.
+      DEMO: ${DEMO:-auto}
+      TZ: ${TZ:-Europe/Warsaw}
+    ports:
+      - "${ADRES_NASLUCHU:-127.0.0.1}:${PANEL_PORT:-8080}:8080"
+
+volumes:
+  bramka-dane:
+  executor-dane:

@@ -1,0 +1,9 @@
+#!/bin/sh
+# Atrapa CLI Claude Code: zapisuje wywołanie i CLAUDE_CONFIG_DIR; logowanie = plik-znacznik w profilu.
+echo "claude $* | CLAUDE_CONFIG_DIR=${CLAUDE_CONFIG_DIR-<brak>}" >> "$KONTA_TEST_LOG"
+kat="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
+case "$*" in
+  "auth login") mkdir -p "$kat"; : > "$kat/.zalogowane-atrapa" ;;
+  "auth logout") rm -f "$kat/.zalogowane-atrapa" ;;
+  "auth status --json") [ -f "$kat/.zalogowane-atrapa" ] && echo '{"loggedIn": true, "email": "ktos@example.com"}' || echo '{"loggedIn": false}' ;;
+esac

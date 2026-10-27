@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+"""Atrapa macOS `security` do testów: pęk kluczy w pliku katalogu $KONTA_TEST_PEK (nie dotyka prawdziwego)."""
+import os, shlex, sys
+pek = os.environ["KONTA_TEST_PEK"]; os.makedirs(pek, exist_ok=True)
+def wartosc(args, flaga):
+    return args[args.index(flaga) + 1] if flaga in args else None
+args = sys.argv[1:]
+if args[:1] == ["-i"]:
+    for linia in sys.stdin:
+        a = shlex.split(linia)
+        if a and a[0] == "add-generic-password":
+            open(os.path.join(pek, wartosc(a, "-s")), "w").write(wartosc(a, "-w"))
+    sys.exit(0)
+if args[:1] == ["find-generic-password"]:
+    p = os.path.join(pek, wartosc(args, "-s") or "")
+    if not os.path.exists(p):
+        sys.exit(44)
+    print(open(p).read()); sys.exit(0)
+sys.exit(1)

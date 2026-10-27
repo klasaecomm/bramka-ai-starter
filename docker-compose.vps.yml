@@ -1,0 +1,24 @@
+# Nakładka na serwer z domeną: HTTPS przez Caddy (docs/vps.md).
+#   docker compose -f docker-compose.yml -f docker-compose.vps.yml up -d --build
+# Usługi dalej słuchają tylko na 127.0.0.1; z internetu ruch idzie wyłącznie przez Caddy (80/443).
+services:
+  caddy:
+    image: caddy:2.11.7-alpine@sha256:eb4d35b7452d1ab6171fbdbe8d9275b2301dad6dad92115d91e19fb9b24d510f
+    restart: unless-stopped
+    depends_on: [bramka, executor, panel]
+    environment:
+      DOMENA_PANELU: ${DOMENA_PANELU:?ustaw DOMENA_PANELU w .env}
+      DOMENA_MCP: ${DOMENA_MCP:?ustaw DOMENA_MCP w .env}
+      EMAIL_TLS: ${EMAIL_TLS:?ustaw EMAIL_TLS w .env}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./konfiguracja/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-dane:/data
+      - caddy-konfig:/config
+
+volumes:
+  caddy-dane:
+  caddy-konfig:
