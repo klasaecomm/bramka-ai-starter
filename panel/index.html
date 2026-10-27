@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{MARKA}}.</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230c0e10'/%3E%3Ccircle cx='23' cy='22' r='3.5' fill='%2375b8ed'/%3E%3Ctext x='13' y='23' text-anchor='middle' font-family='-apple-system,sans-serif' font-weight='700' font-size='17' fill='%23e9ebee'%3Ea%3C/text%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#0c0e10;--surface:#101316;--surface2:#0e1114;--line:#22262b;--line2:#272c32;--text:#e9ebee;--muted:#7d858f;--muted2:#909aa5;--blue:#75b8ed;--green:#82c5a2;--red:#e07f7f;--amber:#d6ab6e;--r:8px}
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;letter-spacing:-.1px;-webkit-font-smoothing:antialiased}
+button{font:inherit;cursor:pointer}a{color:inherit;text-decoration:none}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+/* układ */
+aside{width:200px;position:fixed;inset:0 auto 0 0;border-right:1px solid var(--line);padding:32px 18px 22px;background:#0a0c0e;display:flex;flex-direction:column}
+.brand{font-size:29px;letter-spacing:-1px;font-weight:650;margin:0 6px 40px}.brand i{font-style:normal;color:var(--blue)}
+.nav{width:100%;border:0;background:none;color:#959da6;padding:12px;margin:2px 0;text-align:left;display:flex;gap:11px;align-items:center;border-radius:6px;font-size:15px}
+.nav:hover{color:#d5dbe0}.nav.active{color:#f1f3f5;background:#1b1e22}
+.nav svg{width:17px;height:17px;flex-shrink:0;opacity:.85}
+.nav b{margin-left:auto;font-size:12px;font-weight:400;color:#abb4bd;border:1px solid #343941;padding:1px 6px;border-radius:4px}
+.aside-bottom{margin-top:auto;border-top:1px solid var(--line);padding:16px 6px 0;display:flex;flex-direction:column;gap:10px;font-size:12px;color:var(--muted)}
+main{margin-left:200px;min-height:100vh}
+header{height:64px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 40px}
+.crumb{color:var(--muted);font-size:14px}.crumb strong{color:#c8cdd2;font-weight:450}
+.icon-button{background:none;border:0;color:#9fa7b0;font-size:13px;display:flex;gap:7px;align-items:center;padding:6px 8px;border-radius:6px}.icon-button:hover{background:#15181c;color:var(--text)}
+.content{max-width:1320px;margin:0 auto;padding:42px 40px 60px}
+.title-row{display:flex;align-items:center;justify-content:space-between;gap:20px;min-height:45px;flex-wrap:wrap}
+h1{font-size:34px;letter-spacing:-1px;font-weight:570;margin:0}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.button{height:38px;display:inline-flex;align-items:center;gap:8px;padding:0 14px;background:#181c20;color:#cbd2d9;border:1px solid #323941;border-radius:6px;white-space:nowrap;font-size:13px;line-height:1}
+.button:hover{background:#252b31}.button:disabled{opacity:.5;cursor:wait}
+.button.primary{background:#e5e8eb;color:#141a21;border-color:#e5e8eb;font-weight:550}.button.primary:hover{background:#fff}
+.text-button{color:#7d8e9f;background:none;border:0;font-size:12px;padding:4px 0}.text-button:hover{color:#d6e7f7}.text-button.danger:hover{color:var(--red)}
+.connection-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 0 16px;margin:23px 0 0;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.connection-row>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dot{display:inline-block;flex-shrink:0;width:6px;height:6px;background:var(--green);border-radius:50%}.dot.off{background:var(--red)}.dot.amber{background:var(--amber)}
+.pill{display:inline-flex;align-items:center;gap:6px;margin-left:6px;padding:2px 8px;border:1px solid #4a3f2c;border-radius:999px;color:#d9b67f;background:#1b1712;font-size:11px}
+/* logo (znaki: panel/znaki.mjs, Simple Icons CC0) */
+.logo{display:inline-grid;place-items:center;width:30px;height:30px;flex-shrink:0}
+.logo i{display:block;width:22px;height:22px;background:#f3f3f3;-webkit-mask:var(--mark) center/contain no-repeat;mask:var(--mark) center/contain no-repeat}
+.logo.mono{font-size:12px;font-weight:650;color:#c9d1d9;border:1px solid #39414a;border-radius:7px;width:28px;height:28px;letter-spacing:-.3px}
+/* pule */
+.pools{display:grid;grid-template-columns:repeat(var(--pule,3),minmax(0,1fr));padding:28px 0 26px;border-bottom:1px solid var(--line)}
+.pool{min-width:0;padding:2px 26px}.pool:first-child{padding-left:0}.pool+.pool{border-left:1px solid var(--line)}
+.pool-head{display:flex;align-items:center;gap:10px}.pool-head h2{font-size:17px;font-weight:570;margin:0}.pool-head small{margin-left:auto;color:var(--muted);font-size:12px}
+.pool-value{margin:20px 0 8px;display:flex;align-items:baseline;gap:9px;color:var(--accent)}.pool-value strong{font-size:48px;font-weight:500;letter-spacing:-1.5px;line-height:1}.pool-value span{font-size:14px;color:var(--muted)}
+.pool-caption{font-size:12px;color:var(--muted);margin-bottom:10px}
+.pool-bar{display:flex;gap:5px;height:7px}
+.seg{flex:1;background:#23282d;border-radius:2px;overflow:hidden}.seg>i{display:block;height:100%;background:var(--accent);border-radius:2px}
+.seg.unknown{background:repeating-linear-gradient(90deg,#38414b 0 3px,transparent 3px 6px)}
+.seg.blocked{outline:1px solid var(--accent);outline-offset:2px}.seg.blocked>i{opacity:.45}
+.pool-footer{border-top:1px solid #1e2328;margin-top:20px;padding-top:14px;color:var(--muted);font-size:12px}
+/* filtr + karty */
+.list-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:30px 0 18px}
+.filters{display:flex;gap:6px}
+.filter{border:1px solid transparent;background:none;color:#929aa5;padding:0 12px;height:34px;font-size:13px;border-radius:6px;display:inline-flex;align-items:center;gap:8px}
+.filter:hover{color:var(--text)}.filter.on{background:#e5e8eb;color:#18202a;border-color:#e5e8eb}
+.filter .pdot{width:5px;height:5px;border-radius:50%}.pdot.pro{background:var(--blue)}.pdot.plus{background:var(--green)}.pdot.team,.pdot.business,.pdot.enterprise{background:var(--amber)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.card{border:1px solid var(--line2);border-radius:9px;background:var(--surface);padding:22px;min-height:238px;display:flex;flex-direction:column;transition:border-color .2s}
+.card:hover{border-color:#43505e}
+.card-head{display:flex;gap:10px;align-items:flex-start}.card-head .logo{margin-left:auto}
+.card-name{font-size:15px;font-weight:520;overflow-wrap:anywhere;line-height:1.45}.card-sub{font-size:12px;color:var(--accent);margin-top:3px}
+.badge{display:inline-flex;gap:7px;align-items:center;color:#8e98a2;font-size:12px;margin-top:15px}.badge.limited{color:#d0a378}.badge.error{color:#d88e8e}
+.meters{margin-top:20px}.meter{margin-bottom:17px}
+.meter-label{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--muted2);margin-bottom:7px}.meter-label strong{color:#c4ccd4;font-weight:450;white-space:nowrap}
+.meter-bar{height:6px;background:#252d34;border-radius:1px;overflow:hidden}.meter-bar>i{display:block;height:100%;background:var(--accent);border-radius:1px}
+.meter-bar.unknown{background:repeating-linear-gradient(90deg,#34404a 0 4px,transparent 4px 7px)}
+.meter-reset{font-size:11px;color:var(--muted);margin-top:7px}.meter.exhausted .meter-label strong,.meter-reset b{color:#e7ab85;font-weight:500}.meter.exhausted .meter-bar{background:#493027}
+.note{font-size:12px;color:#ca9890;line-height:1.5;margin:4px 0 10px}
+.card-bottom{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;border-top:1px solid #20272d;margin-top:auto;padding-top:15px}
+.card-bottom span{font-size:11px;color:#717e8b;display:block}.card-bottom strong{display:block;font-size:13px;font-weight:450;margin-top:5px;color:#b2bcc6}
+.card-bottom .links{display:flex;gap:16px}
+.empty{grid-column:1/-1;border:1px dashed #2c323a;border-radius:9px;padding:34px;color:var(--muted);text-align:center;line-height:1.7}
+.empty b{color:var(--text);font-weight:500}
+/* MCP */
+.mcp-section{margin-top:30px}.mcp-section-head{display:flex;align-items:baseline;gap:12px;margin:0 0 14px}
+.mcp-section-head h2{font-size:19px;font-weight:550;letter-spacing:-.4px;margin:0}.mcp-section-head span{font-size:12px;color:var(--muted)}
+.mcp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));gap:16px}
+.mcp-card{min-height:96px;padding:20px;flex-direction:row;align-items:center;gap:14px;position:relative}
+.mcp-card .logo i{width:26px;height:26px}.mcp-card-body{min-width:0;flex:1}
+.mcp-state{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);margin-top:7px}
+.mcp-connect{display:inline-flex;text-align:left;background:none;border:0;padding:0;cursor:pointer}.mcp-connect:hover{color:var(--text)}
+.mcp-tools{font-size:11px;color:#66707a;margin-left:auto;white-space:nowrap}
+.mcp-menu{position:relative;align-self:center;flex-shrink:0}.mcp-menu summary{list-style:none;cursor:pointer;color:var(--muted);border-radius:6px;padding:6px 10px;font-size:20px;line-height:1}
+.mcp-menu summary::-webkit-details-marker{display:none}.mcp-menu summary:hover,.mcp-menu[open] summary{background:var(--surface2);color:var(--text)}
+.mcp-menu-items{position:absolute;right:0;top:34px;min-width:190px;z-index:5;border:1px solid var(--line2);background:var(--surface);border-radius:var(--r);box-shadow:0 8px 24px #0006;padding:5px}
+.mcp-menu-items button{width:100%;display:block;text-align:left;padding:9px 10px;border-radius:5px;color:var(--text);font-size:12px;border:0;background:none}
+.mcp-menu-items button:hover{background:var(--surface2)}.mcp-menu-items button.danger{color:var(--red)}
+.endpoint{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:9px 12px}
+.endpoint code{flex:1;min-width:0;color:#bac7d3;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.endpoint small{color:var(--muted);font-size:11px;white-space:nowrap}
+/* tabele i panele */
+.section{margin-top:28px}.section-title{font-size:12px;font-weight:550;letter-spacing:1.2px;color:#69717c;text-transform:uppercase;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}.two>*{min-width:0}
+.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:12px;font-weight:450;color:#82909e;padding:14px 17px;background:#11161b;white-space:nowrap}
+td{border-top:1px solid var(--line);padding:13px 17px;color:#acb8c4;overflow-wrap:anywhere}td:first-child{color:#e0e5e9;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13px}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}td.muted{color:var(--muted);text-align:center;font-family:inherit}
+.box{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:22px}
+.box h3{margin:0 0 6px;font-size:17px;font-weight:550;display:flex;align-items:center;gap:10px}.box p{margin:0 0 14px;color:var(--muted2);font-size:13px;line-height:1.6}
+.box p code,.notice code{font-size:12px;background:#1a1e23;padding:1px 5px;border-radius:4px}
+.notice{border:1px solid #3c4a5a;background:#101820;border-radius:var(--r);padding:14px 16px;color:#c9d7e4;font-size:13px;line-height:1.6;margin:0 0 14px}
+.notice b{color:#e9f1f8;font-weight:560}
+.code{position:relative;background:var(--surface2);border:1px solid var(--line);border-radius:6px;margin-top:10px}
+.code pre{margin:0;padding:14px 64px 14px 16px;font-size:12.5px;line-height:1.6;color:#c6d0da;overflow:auto;white-space:pre}
+.code .text-button{position:absolute;top:8px;right:12px}
+.label{font-size:11px;color:var(--muted);margin:16px 0 0}
+/* formularze i okna */
+input,select{font:inherit;font-size:14px;color:var(--text);background:var(--surface2);border:1px solid #323941;border-radius:6px;padding:0 12px;height:40px;width:100%}
+input::placeholder{color:#5b646e}
+dialog{background:#111418;color:var(--text);border:1px solid #2b3139;border-radius:12px;padding:26px;width:min(540px,92vw);box-shadow:0 30px 80px rgba(0,0,0,.5)}dialog::backdrop{background:rgba(5,6,8,.72);backdrop-filter:blur(2px)}
+dialog h2{margin:0 0 6px;font-size:20px;font-weight:570;display:flex;align-items:center;gap:10px}dialog p{color:var(--muted2);font-size:13px;line-height:1.6;margin:0 0 14px}
+.steps{list-style:none;padding:0;margin:8px 0 16px;counter-reset:k}.steps li{counter-increment:k;position:relative;padding:0 0 14px 34px;color:#c5ccd3;font-size:14px;line-height:1.5}
+.steps li:before{content:counter(k);position:absolute;left:0;top:0;width:22px;height:22px;border-radius:50%;border:1px solid #3a424b;color:#d6dde3;font-size:12px;display:grid;place-items:center}
+.steps code{font-size:12px;background:#1a1e23;padding:1px 5px;border-radius:4px}
+.field{margin:12px 0}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.err{color:var(--red);font-size:13px;min-height:18px;margin-top:8px}.err.info{color:var(--muted)}
+.secret{font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--surface2);border:1px solid var(--line);border-radius:6px;padding:12px;word-break:break-all;color:#d6e7f7}
+/* logowanie */
+#login{position:fixed;inset:0;background:radial-gradient(1200px 600px at 50% -10%,#16202b 0,var(--bg) 60%);display:grid;place-items:center;z-index:20}
+#login form{width:340px;background:rgba(16,19,22,.9);border:1px solid var(--line2);border-radius:14px;padding:34px 30px 28px}
+#login .brand{text-align:center;margin:0 0 6px;font-size:34px}#login p{text-align:center;color:var(--muted);font-size:13px;margin:0 0 24px}
+#login .button{width:100%;justify-content:center;margin-top:14px;height:42px}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:#dce8e0;color:#193423;padding:10px 17px;border-radius:6px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:30}#toast.show{opacity:1}
+@media(max-width:1100px){.pools{grid-template-columns:1fr;gap:24px}.pool,.pool:first-child{padding:0;border:0}.pool+.pool{border-left:0;border-top:1px solid var(--line);padding-top:24px}.two{grid-template-columns:1fr}}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+@media(max-width:760px){aside{width:62px;padding:22px 8px}.brand{font-size:0;margin:0 0 30px;text-align:center}.brand::first-letter{font-size:27px}.nav{justify-content:center;padding:12px 0}.nav span,.nav b,.aside-bottom{display:none}main{margin-left:62px}header{padding:0 18px}.content{padding:26px 18px}h1{font-size:28px}}
+</style></head><body>
+
+<div id="login" hidden><form id="login-form"><div class="brand">{{MARKA}}<i>.</i></div><p>Konta modeli i wspólne MCP</p><input id="haslo" type="password" placeholder="Hasło do panelu" autocomplete="current-password"><div class="err" id="login-err"></div><button class="button primary">Zaloguj</button></form></div>
+
+<aside><div class="brand">{{MARKA}}<i>.</i></div>
+<button class="nav active" data-view="konta"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg><span>Pule kont</span><b id="n-konta">—</b></button>
+<button class="nav" data-view="modele"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5 20.5 12 12 20.5 3.5 12Z"/></svg><span>Modele</span><b id="n-modele">—</b></button>
+<button class="nav" data-view="mcp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 2v5M15 2v5"/><path d="M6 7h12v4a6 6 0 0 1-12 0z"/><path d="M12 17v5"/></svg><span>MCP</span><b id="n-mcp">—</b></button>
+<button class="nav" data-view="podlacz"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg><span>Jak podłączyć</span></button>
+<div class="aside-bottom"><span id="online"><span class="dot"></span> …</span><button class="text-button" id="wyloguj" style="text-align:left">Wyloguj</button></div></aside>
+
+<main><header><div class="crumb"><strong id="crumb">Subskrypcje</strong></div><button class="icon-button" id="prywatnosc" title="Ukryj e-maile">◉ <span id="priv-txt" hidden></span></button></header>
+<div class="content">
+
+<section data-sekcja="konta">
+ <div class="title-row"><h1>Pule kont</h1><div class="actions"><button class="button" id="polacz">+ Połącz konto</button><button class="button" id="odswiez">↻ Odśwież limity</button></div></div>
+ <div class="connection-row"><div id="stan-kont"><span class="dot"></span>Łączenie…</div><span id="odczyt"></span></div>
+ <div class="pools" id="pule"></div>
+ <div class="list-heading"><div class="filters" id="filtry"></div><span style="color:var(--muted);font-size:12px">Pozostały limit</span></div>
+ <div class="grid" id="konta"></div>
+</section>
+
+<section data-sekcja="modele" hidden>
+ <div class="title-row"><h1>Modele</h1></div>
+ <div class="connection-row"><div id="modele-info"></div><span id="routing"></span></div>
+ <div class="section" id="modele-tabele"></div>
+</section>
+
+<section data-sekcja="mcp" hidden>
+ <div class="title-row"><h1>MCP</h1><div class="actions"><button class="button primary" id="mcp-dodaj">+ Dodaj MCP</button><button class="button" id="mcp-token">Token dostępu</button></div></div>
+ <div class="connection-row"><div id="mcp-info"><span class="dot"></span>Łączenie…</div><button class="text-button" id="mcp-kopiuj-adres">Kopiuj adres MCP</button></div>
+ <div id="mcp-lista"></div>
+</section>
+
+<section data-sekcja="podlacz" hidden>
+ <div class="title-row"><h1>Jak podłączyć</h1></div>
+ <div class="connection-row"><div>Token dostępu do bramki jest w pliku <code>.env</code> na komputerze z bramką (<code>TOKENY_DOSTEPU</code>, osobny dla każdej osoby). Token MCP tworzysz w zakładce MCP.</div></div>
+ <div class="section"><div class="section-title">Adresy</div><div class="two">
+  <div class="endpoint"><small>Modele</small><code id="adres-modeli"></code><button class="text-button" data-kopiuj-el="#adres-modeli">Kopiuj</button></div>
+  <div class="endpoint"><small>MCP</small><code id="adres-mcp"></code><button class="text-button" data-kopiuj-el="#adres-mcp">Kopiuj</button></div></div></div>
+ <div class="two section">
+  <div class="box"><h3><span class="logo codex" id="logo-codex-box"><i></i></span>Codex — CLI i aplikacja</h3><p>Skrypt dopisuje bramkę do <code>~/.codex/config.toml</code>, token trzyma w Keychainie. Najpierw pokazuje plan; <code>--cofnij</code> przywraca poprzednie ustawienia.</p>
+   <div class="code"><button class="text-button" data-kopiuj-el="#cmd-codex">Kopiuj</button><pre id="cmd-codex"></pre></div>
+   <div class="label">Ręcznie — ~/.codex/config.toml</div><div class="code"><button class="text-button" data-kopiuj-el="#cfg-codex">Kopiuj</button><pre id="cfg-codex"></pre></div></div>
+  <div class="box"><h3>Claude Code i Claude Desktop</h3>
+   <div class="notice"><b>Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude (Claude, Claude Code) zalogowanych na własne konto — bramka służy do modeli innych dostawców.</b></div>
+   <p>Opcjonalnie: modele innych dostawców (np. GPT) w interfejsie Claude Code lub Claude Desktop (tryb 3P). Powrót do normalnego logowania, w którym działa Claude: <code>--cofnij</code>.</p>
+   <div class="code"><button class="text-button" data-kopiuj-el="#cmd-claude">Kopiuj</button><pre id="cmd-claude"></pre></div></div>
+ </div>
+ <div class="section box"><h3>Wspólne MCP</h3><p>Jeden adres i jeden token dla wszystkich serwerów MCP z zakładki MCP. Działa w Codexie i w Claude Code zalogowanym normalnie na własne konto.</p>
+  <div class="two"><div><div class="label">Skrypt (Codex, Claude Code, Claude Desktop)</div><div class="code"><button class="text-button" data-kopiuj-el="#cmd-mcp">Kopiuj</button><pre id="cmd-mcp"></pre></div></div>
+  <div><div class="label">Ręcznie — Claude Code</div><div class="code"><button class="text-button" data-kopiuj-el="#cfg-mcp-claude">Kopiuj</button><pre id="cfg-mcp-claude"></pre></div></div></div></div>
+</section>
+</div><div id="toast" role="status"></div></main>
+
+<dialog id="d-konto"><h2><span class="logo" id="dk-logo"><i></i></span><span id="dk-tytul">Połącz konto ChatGPT / Codex</span></h2><p>Logujesz konto ChatGPT (Plus, Pro, Business) raz — potem bramka sama odświeża dostęp i rozkłada pracę między konta.</p>
+<ol class="steps"><li>Kliknij <b>Otwórz logowanie</b> i zaloguj się na <span id="dk-dostawca"></span> kontem, które chcesz dodać. Zatwierdź dostęp.</li>
+<li>Przeglądarka pokaże błąd strony <code>localhost</code> — <b>to normalne</b>. Skopiuj <b>cały adres</b> z paska.</li><li>Wklej go poniżej i kliknij <b>Dodaj konto</b>.</li></ol>
+<a class="button" id="dk-link" target="_blank" rel="noopener noreferrer">Otwórz logowanie ↗</a>
+<div class="field" style="margin-top:18px"><label for="dk-adres">Adres z paska przeglądarki</label><input id="dk-adres" placeholder="http://localhost:…?code=…&amp;state=…"></div><div class="err" id="dk-err"></div>
+<div class="dialog-actions"><button class="button" id="dk-anuluj">Anuluj</button><button class="button primary" id="dk-ok">Dodaj konto</button></div></dialog>
+<dialog id="d-mcp"><h2>Dodaj MCP</h2><p>Serwer MCP dostępny przez internet (HTTPS). Będzie wspólny dla wszystkich, pod jednym adresem.</p>
+<div class="field"><label for="dm-nazwa">Nazwa</label><input id="dm-nazwa" placeholder="stripe"></div>
+<div class="field"><label for="dm-url">Adres serwera MCP</label><input id="dm-url" placeholder="https://mcp.stripe.com"></div>
+<div class="two" style="gap:12px"><div class="field"><label for="dm-auth">Logowanie</label><select id="dm-auth"><option value="brak">Brak albo OAuth (Połącz konto)</option><option value="bearer">Token (Bearer)</option><option value="naglowek">Własny nagłówek</option></select></div>
+<div class="field"><label for="dm-tr">Transport</label><select id="dm-tr"><option value="STREAMABLEHTTP">HTTP (streamable)</option><option value="SSE">SSE</option></select></div></div>
+<div class="field" id="dm-nag-w" hidden><label for="dm-nag">Nazwa nagłówka</label><input id="dm-nag" placeholder="X-Api-Key"></div>
+<div class="field" id="dm-tok-w" hidden><label for="dm-tok">Token / klucz serwera MCP</label><input id="dm-tok" type="password"></div><div class="err" id="dm-err"></div>
+<div class="dialog-actions"><button class="button" data-zamknij>Anuluj</button><button class="button primary" id="dm-ok">Dodaj</button></div></dialog>
+<dialog id="d-meta"><h2>Połącz Meta Ads</h2><p>Meta wymaga istniejącej aplikacji z Facebook Login for Business. <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer">Otwórz aplikacje Meta ↗</a></p>
+<div class="field"><label for="dmeta-id">App ID</label><input id="dmeta-id" inputmode="numeric" pattern="[0-9]{5,30}" placeholder="ID aplikacji z panelu Meta"></div>
+<p>W ustawieniach Facebook Login for Business dodaj ten adres do Valid OAuth Redirect URIs:</p><div class="endpoint"><code id="dmeta-callback"></code><button class="text-button" data-kopiuj-el="#dmeta-callback">Kopiuj</button></div>
+<div class="err" id="dmeta-err"></div><div class="dialog-actions"><button class="button" data-zamknij>Anuluj</button><button class="button primary" id="dmeta-ok">Przejdź do Facebooka</button></div></dialog>
+<dialog id="d-token"><h2>Token dostępu do MCP</h2><p>Token dla osoby albo komputera. Pokazuje się tylko raz — skopiuj go od razu.</p>
+<div class="field"><label for="dt-kto">Dla kogo</label><select id="dt-kto"></select></div>
+<div class="two" style="gap:12px"><div class="field"><label for="dt-nazwa">Nazwa tokenu</label><input id="dt-nazwa" placeholder="laptop-anna"></div><div class="field"><label for="dt-dni">Ważny (dni)</label><input id="dt-dni" type="number" value="90" min="1" max="365"></div></div>
+<div class="secret" id="dt-wynik" hidden></div><div class="err" id="dt-err"></div>
+<div class="dialog-actions"><button class="button" data-zamknij>Zamknij</button><button class="button" id="dt-kopiuj" hidden>Kopiuj</button><button class="button primary" id="dt-ok">Wygeneruj</button></div></dialog>
+
+<script type="module">
+import {accountsFresh, quotaFresh, routingReady} from '/availability.mjs';
+import {ZNAKI, znakUrl} from '/znaki.mjs';
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const e=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Bramka obsługuje wyłącznie konta ChatGPT/Codex (README.md).
+const P={codex:{marka:'ChatGPT',kolor:'var(--blue)',znak:'openai',strona:'chatgpt.com'}};
+const PLANY={pro:'Pro',prolite:'Pro Lite',plus:'Plus',team:'Business',business:'Business',enterprise:'Enterprise',free:'Free'};
+const planKonta=k=>(k.limity&&k.limity.plan)||'';
+// Pule z danych Codexa: okno 5 godzin i tydzień dla wszystkich kont, osobno tydzień kont Pro
+// (największe limity; pokazywane, gdy w bramce są konta Pro i inne plany).
+const PULE=[{tytul:'Codex · 5 godzin',podpis:'Pozostało w oknie 5 godzin',okno:w=>/^5 godzin/.test(w.etykieta)},
+ {tytul:'Codex · tydzień',podpis:'Pozostały limit tygodniowy',okno:w=>/^Tydzie/.test(w.etykieta)},
+ {tytul:'Plan Pro · tydzień',podpis:'Konta Pro — największe limity tygodniowe',okno:w=>/^Tydzie/.test(w.etykieta),konta:k=>planKonta(k)==='pro',
+  pokaz:kk=>kk.some(k=>planKonta(k)==='pro')&&kk.some(k=>planKonta(k)!=='pro')}];
+const markStyle=slug=>{const u=znakUrl(slug);return u?` style="--mark:url('${u}')"`:''};
+const logo=p=>`<span class="logo ${p}" aria-hidden="true"><i${markStyle(P[p]?.znak)}></i></span>`;
+let S=null,M=null,filtr='all',prywatnie=localStorage.getItem('bramka-priv')!=='0',widok='konta';
+const fmt=n=>Number.isInteger(n)?String(n):n.toFixed(1);
+function toast(t){$('#toast').textContent=t;$('#toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('#toast').classList.remove('show'),2600)}
+async function api(sciezka,dane){const r=await fetch('/api/'+sciezka,dane===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json','X-Panel':'1'},body:JSON.stringify(dane)});
+ if(r.status===401&&sciezka!=='zaloguj'){pokazLogin();throw new Error('zaloguj się')}const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.blad||('HTTP '+r.status));return j}
+function pokazLogin(){$('#login').hidden=false;setTimeout(()=>$('#haslo').focus(),50)}
+$('#login-form').onsubmit=async ev=>{ev.preventDefault();$('#login-err').textContent='';try{await api('zaloguj',{haslo:$('#haslo').value});$('#login').hidden=true;$('#haslo').value='';start()}catch(x){$('#login-err').textContent=x.message}};
+$('#wyloguj').onclick=async()=>{await fetch('/api/wyloguj');location.reload()};
+function za(s){if(!s)return'Brak terminu';let t=Math.max(0,(new Date(s)-Date.now())/1000|0);if(!t)return'Oczekiwanie na odczyt';const d=t/86400|0,h=t%86400/3600|0,m=t%3600/60|0;return d?`${d} ${d===1?'dzień':'dni'} ${h} godz.`:h?`${h} godz. ${m} min`:`${m} min`}
+const znane=w=>w&&typeof w.pozostalo==='number';
+const okna=k=>((k.limity&&k.limity.okna)||[]).filter(w=>w.glowne);
+function dostepnosc(k){const g=okna(k),zbl=g.filter(w=>w.pozostalo===0||w.zablokowane),pelne=g.length>0&&g.every(znane);
+ const swieze=accountsFresh(S)&&quotaFresh(k),routing=routingReady(k,'*');
+ return {g,zbl,pelne,swieze,routing,gotowe:swieze&&pelne&&!zbl.length&&routing===true,reset:zbl.length?zbl.map(w=>w.reset).filter(Boolean).sort().pop():null}}
+const ileKont=n=>n+' '+(n===1?'konto':(n%10>=2&&n%10<=4&&(n%100<10||n%100>=20))?'konta':'kont');
+function pula(def){const p='codex',k=S.konta.filter(x=>!x.disabled&&(!def.konta||def.konta(x))),ch=k.map(dostepnosc),w=k.map((x,i)=>ch[i].swieze?okna(x).find(def.okno):null),zn=w.filter(znane),suma=zn.reduce((a,x)=>a+x.pozostalo,0),gotowe=ch.filter(c=>c.gotowe).length;
+ return `<article class="pool" style="--accent:${P[p].kolor}"><div class="pool-head">${logo(p)}<h2>${e(def.tytul)}</h2><small>${ileKont(k.length)}</small></div>
+ <div class="pool-value"><strong>${zn.length?fmt(Math.round(suma))+'%':'—'}</strong><span>${k.length?'z '+k.length*100+'%':'brak kont'}</span></div><div class="pool-caption">${e(def.podpis)}</div>
+ <div class="pool-bar">${k.length?w.map((x,i)=>`<div class="seg ${znane(x)?'':'unknown'} ${ch[i].zbl.length||ch[i].routing===false?'blocked':''}" title="${e((prywatnie?'Konto '+(S.konta.indexOf(k[i])+1):k[i].email)+': '+(znane(x)?fmt(x.pozostalo)+'%':'brak aktualnego odczytu'))}"><i style="width:${znane(x)?x.pozostalo:0}%"></i></div>`).join(''):'<div class="seg unknown"></div>'}</div>
+ <div class="pool-footer">${k.length?`${gotowe}/${k.length} kont dostępnych`:'Połącz konto przyciskiem u góry'}</div></article>`}
+function meter(w){const z=znane(w),zbl=w.pozostalo===0||w.zablokowane;
+ return `<div class="meter ${zbl?'exhausted':''}"><div class="meter-label"><span>${e(w.etykieta)}</span><strong>${z?fmt(w.pozostalo)+'% pozostało':'Brak odczytu'}</strong></div><div class="meter-bar ${z?'':'unknown'}"><i style="width:${z?w.pozostalo:0}%"></i></div><div class="meter-reset">${zbl?'<b>Limit wykorzystany</b> · ':''}${w.reset?'Reset za '+za(w.reset):'Termin resetu nieznany'}</div></div>`}
+function konto(k,i){const L=k.limity||{},c=dostepnosc(k);
+ const stan=k.disabled?['Wyłączone','error']:k.unavailable&&/unauthorized/i.test(k.komunikat)?['Wylogowane — połącz ponownie','error']:!c.swieze?['Brak aktualnego odczytu','limited']:c.zbl.length?['Limit wykorzystany','limited']:c.routing===false?['Chwilowa przerwa po błędzie','limited']:!c.pelne?['Oczekiwanie na odczyt limitów','']:['Gotowe',''];
+ const plan=L.plan?(PLANY[L.plan]||L.plan):'Subskrypcja';
+ const resety=c.g.filter(w=>w.reset).sort((a,b)=>new Date(a.reset)-new Date(b.reset)),reset=c.zbl.length?c.reset:resety[0]&&resety[0].reset;
+ return `<article class="card" style="--accent:${P[k.provider].kolor}"><div class="card-head"><div><div class="card-name">${e(prywatnie?'Konto '+(i+1):(k.email||k.nazwa))}</div><div class="card-sub">${P[k.provider].marka} · ${e(plan)}</div></div>${logo(k.provider)}</div>
+ <div class="badge ${stan[1]}"><span class="dot ${stan[1]==='error'?'off':stan[1]==='limited'?'amber':''}"></span>${stan[0]}</div>
+ <div class="meters">${c.g.length?c.g.map(meter).join(''):'<div class="note" style="color:var(--muted)">Oczekiwanie na odczyt limitów…</div>'}</div>${L.blad?`<div class="note">${e(L.blad)}${L.nieswiezy?' · pokazano ostatnie dane':''}</div>`:''}
+ <div class="card-bottom"><div><span>${c.zbl.length?'Koniec blokady':'Najbliższy reset'}</span><strong>${za(reset)}</strong></div><div class="links"><button class="text-button" data-wlacz="${e(k.nazwa)}" data-stan="${k.disabled?1:0}">${k.disabled?'Włącz':'Wyłącz'}</button><button class="text-button danger" data-usun="${e(k.nazwa)}" data-email="${e(k.email)}">Usuń</button></div></div></article>`}
+const demoPill=()=>S&&S.demo?'<span class="pill">Tryb demo · dane przykładowe</span>':'';
+function rysujKonta(){if(!S)return;$('#n-konta').textContent=S.konta.length;
+ const aktywne=S.konta.filter(k=>!k.disabled),pule=PULE.filter(d=>!d.pokaz||d.pokaz(aktywne));
+ $('#pule').style.setProperty('--pule',pule.length);$('#pule').innerHTML=pule.map(pula).join('');
+ const plany=[...new Set(S.konta.map(planKonta).filter(Boolean))].sort((a,b)=>Object.keys(PLANY).indexOf(a)-Object.keys(PLANY).indexOf(b));
+ if(filtr!=='all'&&!plany.includes(filtr))filtr='all';
+ $('#filtry').innerHTML=`<button class="filter ${filtr==='all'?'on':''}" data-f="all">Wszystkie konta <span style="opacity:.6">${S.konta.length}</span></button>`+(plany.length>1?plany.map(pl=>`<button class="filter ${filtr===pl?'on':''}" data-f="${e(pl)}"><i class="pdot ${e(pl)}"></i>${e(PLANY[pl]||pl)}</button>`).join(''):'');
+ $$('#filtry [data-f]').forEach(b=>b.onclick=()=>{filtr=b.dataset.f;rysujKonta()});
+ const lista=S.konta.map((k,i)=>[k,i]).filter(([k])=>filtr==='all'||planKonta(k)===filtr);
+ $('#konta').innerHTML=lista.map(([k,i])=>konto(k,i)).join('')||`<div class="empty">Nie ma jeszcze kont.<br>Kliknij <b>Połącz konto</b> — logowanie zajmuje minutę.</div>`;
+ const px=S.proxy||{};
+ $('#stan-kont').innerHTML=(px.ok?'<span class="dot"></span>Proxy działa':`<span class="dot off"></span>${px.blad?'Proxy nie odpowiada: '+e(px.blad):'Brak aktualnego odczytu proxy'}`)+demoPill();
+ $('#odczyt').textContent=S.ostatniOdczytKont?'Odczyt '+new Date(S.ostatniOdczytKont).toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}):'';
+ $('#online').innerHTML=px.ok?'<span class="dot"></span> Proxy działa':'<span class="dot off"></span> Proxy nie odpowiada';
+ $$('[data-usun]').forEach(b=>b.onclick=async()=>{if(!confirm('Usunąć konto '+(b.dataset.email||b.dataset.usun)+' z bramki?'))return;try{await api('konta/usun',{nazwa:b.dataset.usun});toast('Konto usunięte');odswiez()}catch(x){toast(x.message)}});
+ $$('[data-wlacz]').forEach(b=>b.onclick=async()=>{try{await api('konta/wlacz',{nazwa:b.dataset.wlacz,wlaczone:b.dataset.stan==='1'});odswiez()}catch(x){toast(x.message)}})}
+function rysujModele(){if(!S)return;$('#n-modele').textContent=S.modele.length;const r=S.routing||{};
+ $('#modele-info').innerHTML=`<span class="dot ${S.proxy?.ok?'':'off'}"></span>${S.modele.length} modeli z ${ileKont(S.konta.filter(k=>!k.disabled).length)}${demoPill()}`;
+ $('#routing').textContent=r.strategia?`Routing: ${r.strategia}${r.affinity?' + rozmowa→konto ('+r.affinityTtl+')':''} · ponowienia: ${r.retry??'?'}`:'';
+ const l=[...S.modele].sort((a,b)=>a.model.localeCompare(b.model));
+ $('#modele-tabele').innerHTML=`<div><div class="section-title">${logo('codex')}ChatGPT / Codex</div><div class="table-wrap"><table><thead><tr><th>Model</th><th class="n">Kont</th><th>Stan</th></tr></thead><tbody>${l.map(m=>`<tr><td>${e(m.model)}</td><td class="n">${m.kont}</td><td><span class="dot ${m.dostepny?'':m.dostepny===null?'amber':'off'}"></span> ${m.dostepny===null?'brak aktualnego odczytu':m.dostepny?'dostępny':'brak dostępnego konta'}</td></tr>`).join('')||'<tr><td colspan=3 class="muted">Połącz konto, żeby zobaczyć modele</td></tr>'}</tbody></table></div></div>`}
+function rysujPodlacz(){if(!S)return;const a=S.adresModeli,m=S.adresMcp;$('#adres-modeli').textContent=a;$('#adres-mcp').textContent=m;
+ $('#logo-codex-box i').setAttribute('style',`--mark:url('${znakUrl('openai')}')`);
+ $('#cmd-codex').textContent=`./klienci/przelacz.sh --bramka ${a}\n./klienci/przelacz.sh --bramka ${a} --zastosuj\n./klienci/przelacz.sh --cofnij`;
+ $('#cfg-codex').textContent=`model_provider = "bramka-ai"\n\n[model_providers.bramka-ai]\nname = "Bramka AI"\nbase_url = "${a}/v1"\nwire_api = "responses"\nsupports_websockets = false\n\n# pomocnik czyta token z Keychaina (tworzy go klienci/przelacz.sh)\n[model_providers.bramka-ai.auth]\ncommand = "/Users/<ty>/.bramka-ai/token-bramki.sh"`;
+ $('#cmd-claude').textContent=`./klienci/przelacz.sh --bramka ${a} \\\n    --claude-code --zastosuj\n./klienci/przelacz.sh --bramka ${a} \\\n    --claude-desktop --zastosuj\n./klienci/przelacz.sh --cofnij`;
+ $('#cmd-mcp').textContent=`./klienci/przelacz.sh --mcp ${m} --zastosuj\n# token MCP: zakładka MCP → Token dostępu`;
+ $('#cfg-mcp-claude').textContent=`claude mcp add-json --scope user bramka-mcp \\\n  '{"type":"http","url":"${m}",\n    "headersHelper":"~/.bramka-ai/naglowki-mcp.sh"}'`}
+let odswiezTrwa=null;
+async function odswiez(){if(odswiezTrwa)return odswiezTrwa;odswiezTrwa=(async()=>{try{S=await api('stan');rysujKonta();rysujModele();rysujPodlacz()}catch(x){if(x.message!=='zaloguj się')$('#stan-kont').innerHTML='<span class="dot off"></span>'+e(x.message)}})().finally(()=>{odswiezTrwa=null});return odswiezTrwa}
+// MCP: sekcje tylko porządkują widok; połączenia i ich uprawnienia są wspólne w Executorze.
+const FOLDERY=[{id:'sprzedaz',nazwa:'Sprzedaż i marketing',slugi:['stripe','shopify','meta-ads','resend','hubspot','mailchimp','allegro']},
+ {id:'tresci',nazwa:'Treści i media',slugi:['elevenlabs','higgsfield','notion','figma','canva']},
+ {id:'technologia',nazwa:'Technologia',slugi:['cloudflare','github','supabase','vercel','linear','sentry']},
+ {id:'dokumentacja',nazwa:'Dokumentacja',slugi:['context7','openai-docs']},{id:'wlasne',nazwa:'Własne serwery',slugi:[]}];
+const slugMcp=p=>p.slug||p.id,folderMcp=p=>p.folder||(FOLDERY.find(f=>f.slugi.includes(slugMcp(p)))||{id:'wlasne'}).id;
+function logoMcp(p){const s=slugMcp(p),k={'meta-ads':'meta','openai-docs':'openai'}[s]||s;
+ if(ZNAKI[k])return `<span class="logo" aria-hidden="true"><i${markStyle(k)}></i></span>`;
+ const n=String(p.nazwa||s),mono=(n[0]||'?').toUpperCase()+((n.match(/\d+$/)||[''])[0]);return `<span class="logo mono" aria-hidden="true">${e(mono)}</span>`}
+function stanMcp(p){
+ if(!p.aktywne)return {label:'Wyłączony',dot:'off'};
+ if(p.status==='expired')return {label:'Połącz ponownie',dot:'amber',connect:p.oauthPanel};
+ if(p.status==='unconnected'||p.polaczone===false)return {label:'Połącz konto',dot:'amber',connect:p.oauthPanel};
+ if(!p.osiagalne)return {label:'Niedostępny',dot:'off'};
+ if(p.brakUprawnien)return {label:'Wymaga uprawnień',dot:'amber',connect:p.oauthPanel};
+ return {label:'Połączone',dot:''}}
+function kartaMcp(p){const s=stanMcp(p),n=p.nazwa;
+ return `<article class="card mcp-card">${logoMcp(p)}<div class="mcp-card-body"><div class="card-name">${e(n)}</div>${s.connect?`<button class="mcp-state mcp-connect" data-mcp-polacz="${e(p.id)}"><span class="dot ${s.dot}"></span>${e(s.label)}</button>`:`<div class="mcp-state"><span class="dot ${s.dot}"></span>${e(s.label)}</div>`}</div>${p.narzedzi?`<span class="mcp-tools">${p.narzedzi} narzędzi</span>`:''}
+ <details class="mcp-menu"><summary aria-label="${e('Opcje '+n)}" title="Opcje">⋯</summary><div class="mcp-menu-items"><button data-kopiuj="${e(p.serwer?.adres||'')}">Kopiuj adres MCP</button>${p.polaczone?`<button data-mcp-odswiez="${e(p.id)}">Odśwież narzędzia</button>`:''}${p.oauthPanel&&!s.connect?`<button data-mcp-polacz="${e(p.id)}">Połącz ponownie</button>`:''}<button class="danger" data-mcp-usun="${e(p.id)}" data-nazwa="${e(n)}">Usuń MCP</button></div></details></article>`}
+function rysujMcp(){if(!M)return;
+ $('#mcp-lista').innerHTML=FOLDERY.map(f=>{const l=M.polaczenia.filter(p=>folderMcp(p)===f.id).sort((a,b)=>a.nazwa.localeCompare(b.nazwa,'pl'));if(!l.length)return'';
+  return `<section class="mcp-section"><div class="mcp-section-head"><h2>${e(f.nazwa)}</h2><span>${l.length} MCP</span></div><div class="mcp-grid">${l.map(kartaMcp).join('')}</div></section>`}).join('')||'<div class="empty" style="margin-top:28px">Nie ma jeszcze serwerów MCP.<br>Kliknij <b>Dodaj MCP</b>.</div>';
+ $$('#mcp-lista [data-kopiuj]').forEach(b=>b.onclick=()=>{kopiuj(b.dataset.kopiuj);b.closest('details').open=false});
+ $$('[data-mcp-polacz]').forEach(b=>b.onclick=async()=>{if(/(^|-)meta-ads$/.test(b.dataset.mcpPolacz)&&!b.dataset.mcpPolacz.startsWith('demo-')){$('#dmeta-err').textContent='';$('#d-meta').showModal();return}b.disabled=true;try{const r=await api('mcp/oauth/start',{id:b.dataset.mcpPolacz});location.assign(r.url)}catch(x){toast(x.message);b.disabled=false}});
+ $$('[data-mcp-odswiez]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await api('mcp/odswiez',{id:b.dataset.mcpOdswiez});toast('Narzędzia odświeżone');await odswiezMcp()}catch(x){toast(x.message);b.disabled=false}});
+ $$('[data-mcp-usun]').forEach(b=>b.onclick=async()=>{if(!confirm('Usunąć MCP '+b.dataset.nazwa+' ze wspólnej bramki dla wszystkich użytkowników?'))return;b.disabled=true;try{await api('mcp/usun',{id:b.dataset.mcpUsun});toast('MCP usunięty');await odswiezMcp()}catch(x){toast(x.message);b.disabled=false}});
+ $$('details.mcp-menu').forEach(d=>d.ontoggle=()=>{if(d.open)$$('details.mcp-menu').filter(x=>x!==d).forEach(x=>x.open=false)})}
+$('#dmeta-ok').onclick=async ev=>{const b=ev.currentTarget;b.disabled=true;$('#dmeta-err').textContent='';try{const r=await api('mcp/oauth/start',{id:'meta-ads',clientId:$('#dmeta-id').value.trim()});location.assign(r.url)}catch(x){$('#dmeta-err').textContent=x.message}finally{b.disabled=false}};
+async function odswiezMcp(){try{M=await api('mcp');$('#n-mcp').textContent=M.polaczenia.length;
+ $('#mcp-info').innerHTML=(M.executor?.ok?'<span class="dot"></span>Executor działa':'<span class="dot off"></span>Executor nie odpowiada'+(M.executor?.blad?': '+e(M.executor.blad):''))+(M.demo?'<span class="pill">Tryb demo · przykładowe MCP</span>':'');
+ if(!document.activeElement?.closest('#mcp-lista')&&!$('#mcp-lista details[open]'))rysujMcp();
+ }catch(x){if(x.message!=='zaloguj się'){$('#mcp-info').innerHTML='<span class="dot off"></span>'+e(x.message);$('#mcp-lista').innerHTML=''}}}
+function kopiuj(t){navigator.clipboard.writeText(t).then(()=>toast('Skopiowano'),()=>toast('Nie udało się skopiować'))}
+$$('[data-kopiuj-el]').forEach(b=>b.onclick=()=>kopiuj($(b.dataset.kopiujEl).textContent));
+const TYT={konta:'Subskrypcje',modele:'Modele',mcp:'Serwery MCP',podlacz:'Jak podłączyć'};
+function pokaz(v){widok=v;$$('.nav').forEach(x=>x.classList.toggle('active',x.dataset.view===v));$$('[data-sekcja]').forEach(s=>s.hidden=s.dataset.sekcja!==v);$('#crumb').textContent=TYT[v];if(v==='mcp')odswiezMcp()}
+$$('.nav').forEach(b=>b.onclick=()=>{pokaz(b.dataset.view);history.replaceState(null,'',b.dataset.view==='konta'?location.pathname:'#'+b.dataset.view)});
+if(TYT[location.hash.slice(1)])pokaz(location.hash.slice(1));
+function priv(){$('#prywatnosc').title=prywatnie?'Pokaż e-maile':'Ukryj e-maile'}priv();
+$('#prywatnosc').onclick=()=>{prywatnie=!prywatnie;localStorage.setItem('bramka-priv',prywatnie?'1':'0');priv();rysujKonta()};
+$('#odswiez').onclick=async ev=>{const b=ev.currentTarget;b.disabled=true;try{await api('odswiez',{});await odswiez();toast('Limity odświeżone')}catch(x){toast(x.message)}finally{b.disabled=false}};
+// Połącz konto: logowanie OAuth ChatGPT z wklejeniem adresu powrotu.
+let dk=null;
+$('#polacz').onclick=ev=>dodaj(ev.currentTarget);
+async function dodaj(b){b.disabled=true;try{const r=await api('konta/start',{dostawca:'codex'});dk={dostawca:'codex',state:r.state};
+ $('#dk-logo').className='logo codex';$('#dk-logo i').setAttribute('style',`--mark:url('${znakUrl(P.codex.znak)}')`);$('#dk-dostawca').textContent=P.codex.strona;$('#dk-link').href=r.url;$('#dk-adres').value='';$('#dk-err').textContent='';$('#d-konto').showModal()}catch(x){toast(x.message)}finally{b.disabled=false}}
+async function anulujDk(){if(dk)await api('konta/anuluj',{state:dk.state}).catch(()=>{});dk=null}
+$('#dk-anuluj').onclick=()=>{$('#d-konto').close()};$('#d-konto').addEventListener('close',anulujDk);
+$('#dk-ok').onclick=async ev=>{const b=ev.currentTarget;b.disabled=true;$('#dk-err').className='err info';$('#dk-err').textContent='Sprawdzam logowanie…';try{await api('konta/dokoncz',{...dk,adres:$('#dk-adres').value});dk=null;$('#d-konto').close();toast('Konto dodane');await odswiez()}catch(x){$('#dk-err').className='err';$('#dk-err').textContent=x.message}finally{b.disabled=false}};
+$$('[data-zamknij]').forEach(b=>b.onclick=()=>b.closest('dialog').close());
+$('#dm-auth').onchange=()=>{const a=$('#dm-auth').value;$('#dm-tok-w').hidden=a==='brak';$('#dm-nag-w').hidden=a!=='naglowek'};
+$('#mcp-dodaj').onclick=()=>{['#dm-nazwa','#dm-url','#dm-tok','#dm-nag'].forEach(s=>$(s).value='');$('#dm-auth').value='brak';$('#dm-auth').onchange();$('#dm-err').textContent='';$('#d-mcp').showModal()};
+$('#dm-ok').onclick=async ev=>{const b=ev.currentTarget;b.disabled=true;$('#dm-err').className='err info';$('#dm-err').textContent='Łączę się z serwerem MCP…';try{await api('mcp/dodaj',{nazwa:$('#dm-nazwa').value,url:$('#dm-url').value,auth:$('#dm-auth').value,token:$('#dm-tok').value,naglowek:$('#dm-nag').value,transport:$('#dm-tr').value});$('#d-mcp').close();toast('Połączenie dodane');odswiezMcp()}catch(x){$('#dm-err').className='err';$('#dm-err').textContent=x.message}finally{b.disabled=false}};
+$('#mcp-kopiuj-adres').onclick=()=>kopiuj(M?.wspolny?.adres||S?.adresMcp||'');
+$('#dmeta-callback').textContent=location.origin+'/oauth/mcp/callback';
+$('#mcp-token').onclick=async()=>{$('#dt-wynik').hidden=true;$('#dt-kopiuj').hidden=true;$('#dt-err').textContent='';$('#d-token').showModal();try{const u=await api('mcp/uzytkownicy');$('#dt-kto').innerHTML=u.map(x=>`<option value="${e(x.email)}">${e(x.nazwa||x.email)} — ${e(x.email)}</option>`).join('')}catch(x){$('#dt-err').textContent=x.message}};
+$('#dt-ok').onclick=async ev=>{const b=ev.currentTarget;b.disabled=true;try{const r=await api('mcp/token',{email:$('#dt-kto').value,dni:$('#dt-dni').value,nazwa:$('#dt-nazwa').value});$('#dt-wynik').hidden=false;$('#dt-wynik').textContent=r.token||'(brak tokenu w odpowiedzi)';$('#dt-kopiuj').hidden=!r.token;toast('Skopiuj token teraz — drugi raz się nie pokaże')}catch(x){$('#dt-err').textContent=x.message}finally{b.disabled=false}};
+$('#dt-kopiuj').onclick=()=>kopiuj($('#dt-wynik').textContent);
+let timer=null;function start(){odswiez();odswiezMcp();clearInterval(timer);timer=setInterval(()=>{odswiez();if(widok==='mcp')odswiezMcp()},15000)}
+fetch('/api/stan').then(r=>{if(r.status===401)pokazLogin();else start()});
+</script></body></html>

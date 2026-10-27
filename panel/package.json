@@ -1,0 +1,17 @@
+{
+  "name": "bramka-ai-panel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Panel bramki AI: pule kont, limity, modele, wspólne MCP (Executor)",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "demo": "PANEL_HASLO=demo KLUCZ_ZARZADZANIA=demo DEMO=1 node server.mjs",
+    "test": "node --test testy/*.test.mjs",
+    "check": "node --check server.mjs"
+  }
+}

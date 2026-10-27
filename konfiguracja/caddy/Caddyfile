@@ -1,0 +1,31 @@
+# Caddy: HTTPS (Let's Encrypt) przed bramką. Domeny z .env: DOMENA_PANELU, DOMENA_MCP.
+# Na zewnątrz wystawiamy tylko API modeli, panel i MCP — nigdy /v0/management bramki.
+{
+	email {$EMAIL_TLS}
+}
+
+{$DOMENA_PANELU} {
+	encode zstd gzip
+	@modele path /v1 /v1/* /v1beta /v1beta/* /backend-api/* /openai/* /healthz
+	handle @modele {
+		reverse_proxy bramka:8317 {
+			flush_interval -1
+			transport http {
+				read_timeout 30m
+			}
+		}
+	}
+	handle /v0/* {
+		respond 404
+	}
+	handle {
+		reverse_proxy panel:8080
+	}
+}
+
+{$DOMENA_MCP} {
+	encode zstd gzip
+	reverse_proxy executor:4788 {
+		flush_interval -1
+	}
+}

@@ -1,0 +1,8 @@
+#!/bin/sh
+echo "codex $* | CODEX_HOME=${CODEX_HOME-<brak>}" >> "$KONTA_TEST_LOG"
+kat="${CODEX_HOME:-$HOME/.codex}"
+case "$*" in
+  "login") mkdir -p "$kat"; echo '{}' > "$kat/auth.json" ;;
+  "logout") rm -f "$kat/auth.json" ;;
+  "login status") [ -f "$kat/auth.json" ] && echo "Logged in using ChatGPT" || echo "Not logged in" ;;
+esac

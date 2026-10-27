@@ -1,0 +1,3 @@
+#!/bin/sh
+# Atrapa pgrep do testów: „żaden proces nie działa”.
+exit 1
