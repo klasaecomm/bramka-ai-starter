@@ -4,12 +4,11 @@ Jesteś agentem (Claude Code, Codex), który stawia tę bramkę na komputerze u�
 Pracuj po polsku, krótko. Najpierw pokaż plan i poczekaj na wyraźne „tak”.
 
 > [!IMPORTANT]
-> **Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude (Claude, Claude Code)
-> zalogowanych na własne konto — bramka służy do modeli innych dostawców.**
-> Bramka obsługuje wyłącznie konta ChatGPT/Codex użytkownika. Nie podłączaj innych kont ani
-> subskrypcji (także Claude) i nie proponuj tego — regulaminy tych dostawców zabraniają używania
-> ich logowania w narzędziach zewnętrznych. Nie proponuj kluczy API dostawców jako alternatywy.
-> Dostęp do bramki to „token dostępu do bramki”.
+> **Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude (Claude Code, Claude Desktop).**
+> Konta Claude w bramce obsługują tylko te aplikacje w trybie bramki — nie podpinaj bramki z kontami
+> Claude do innych narzędzi. Bramka przyjmuje konta ChatGPT/Codex i Claude; każde konto musi należeć
+> do użytkownika. Kont Google (Gemini/Antigravity) nie podłączaj. Dostęp do bramki to
+> „token dostępu do bramki”.
 
 ## Zasady
 
@@ -50,7 +49,7 @@ Pracuj po polsku, krótko. Najpierw pokaż plan i poczekaj na wyraźne „tak”
    ```
    W panelu (http://localhost:8080) wiersz stanu ma pokazać „Proxy działa”, a zakładka MCP
    „Executor działa”, oba z oznaczeniem „Tryb demo”.
-4. **Konta**: poproś użytkownika, żeby w panelu kliknął „+ Połącz konto” (konto ChatGPT / Codex),
+4. **Konta**: poproś użytkownika, żeby w panelu kliknął „+ Połącz konto” (ChatGPT / Codex albo Claude),
    zalogował się w przeglądarce i wkleił adres z paska. Po pierwszym koncie demo znika,
    a `/v1/models` zwraca modele.
 5. **MCP**: użytkownik dodaje serwery w zakładce MCP („+ Dodaj MCP”, potem „Połącz konto” dla OAuth).
@@ -62,8 +61,8 @@ Pracuj po polsku, krótko. Najpierw pokaż plan i poczekaj na wyraźne „tak”
    ./klienci/przelacz.sh --mcp http://localhost:4788/mcp --mcp-token-z-panelu --zastosuj   # wspólne MCP
    ```
    Token dostępu skrypt bierze z `.env` tego repo i zapisuje w Keychainie / secret-tool.
-   `--claude-code` / `--claude-desktop` (modele innych dostawców w interfejsie Claude) włączaj tylko
-   na wyraźną prośbę i powiedz, że Claude w tych aplikacjach wróci po `--cofnij`.
+   `--claude-code` / `--claude-desktop` (Claude Code / Claude Desktop przez bramkę) włączaj tylko
+   na wyraźną prośbę i powiedz, że `--cofnij` przywraca w nich własne logowanie użytkownika.
 7. **Diagnostyka**: `./klienci/przelacz.sh --diagnostyka --mcp http://localhost:4788/mcp`.
    Powiedz użytkownikowi, żeby zrestartował aplikacje.
 
@@ -85,7 +84,7 @@ Logi: `docker compose logs -f --tail 100 <bramka|executor|panel>`. Testy panelu:
 ## Cofnięcie
 
 1. `./klienci/przelacz.sh --cofnij` — przywraca dokładnie poprzednie wartości w Codexie, Claude Code
-   i Claude Desktop (normalne logowanie, w którym działa Claude) i usuwa dodane MCP.
+   i Claude Desktop (własne logowanie użytkownika) i usuwa dodane MCP.
 2. `docker compose down` — zatrzymuje usługi, dane zostają. `docker compose down -v` usuwa także
    wolumeny (konta, połączenia MCP) — tylko na wyraźną prośbę.
 3. Tokeny w magazynie systemowym: `security delete-generic-password -s bramka-ai-token`

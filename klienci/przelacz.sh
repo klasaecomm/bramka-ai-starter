@@ -3,14 +3,14 @@
 #
 #   ./klienci/przelacz.sh --bramka http://localhost:8317                  # plan
 #   ./klienci/przelacz.sh --bramka http://localhost:8317 --zastosuj       # Codex (CLI + aplikacja) na bramkę
-#   ... --claude-code --zastosuj      # Claude Code: modele innych dostawców w interfejsie Claude
-#   ... --claude-desktop --zastosuj   # Claude Desktop (tryb 3P): modele innych dostawców
+#   ... --claude-code --zastosuj      # Claude Code przez bramkę (pula kont Claude i Codex)
+#   ... --claude-desktop --zastosuj   # Claude Desktop przez bramkę (tryb 3P)
 #   ./klienci/przelacz.sh --mcp http://localhost:4788/mcp --zastosuj      # wspólne MCP (Codex, Claude Code, Claude Desktop)
 #   ./klienci/przelacz.sh --diagnostyka
-#   ./klienci/przelacz.sh --cofnij    # wszystko z powrotem, także normalne logowanie w Claude
+#   ./klienci/przelacz.sh --cofnij    # wszystko z powrotem, także Twoje własne logowanie w Claude
 #
-# Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude zalogowanych na własne
-# konto — bramka służy do modeli innych dostawców. Skrypt nie rusza istniejących serwerów MCP,
+# Z modeli Claude korzystamy wyłącznie w oficjalnych aplikacjach Claude (Claude Code, Claude Desktop):
+# konta Claude w bramce obsługują tylko te aplikacje w trybie bramki. Skrypt nie rusza istniejących serwerów MCP,
 # pluginów, hooków ani instrukcji. Token dostępu trzyma w Keychainie (macOS) / secret-tool (Linux),
 # nie w plikach konfiguracji. Zmienione pola zapisuje w ~/.bramka-ai/stan.json, a --cofnij
 # przywraca dokładnie ich poprzednie wartości (kopie plików: ~/.bramka-ai/kopie/).
@@ -114,7 +114,7 @@ if c.exists():
     print('Codex model_provider:', m.group(1) if m else '(domyślny)')
 cs = pathlib.Path(os.environ['CLAUDE_SETTINGS'])
 if cs.exists():
-    try: print('Claude Code ANTHROPIC_BASE_URL:', json.loads(cs.read_text()).get('env', {}).get('ANTHROPIC_BASE_URL', '(normalne logowanie)'))
+    try: print('Claude Code ANTHROPIC_BASE_URL:', json.loads(cs.read_text()).get('env', {}).get('ANTHROPIC_BASE_URL', '(własne logowanie)'))
     except Exception: pass
 PY
   exit 0
@@ -156,7 +156,7 @@ if 'claude_code' in stan and cs.exists():
     if not d.get('env'): d.pop('env', None)
     wroc(d, 'apiKeyHelper', prev.get('apiKeyHelper'))
     cs.write_text(json.dumps(d, indent=2, ensure_ascii=False) + '\n')
-    print('Claude Code: przywrócono normalne logowanie (Claude działa jak wcześniej)')
+    print('Claude Code: przywrócono Twoje własne logowanie')
 if 'claude_desktop' in stan:
     base = pathlib.Path(os.environ['DESKTOP_3P']); prev = stan['claude_desktop']
     cfg_p = base / 'claude_desktop_config.json'; meta_p = base / 'configLibrary' / '_meta.json'
@@ -166,7 +166,7 @@ if 'claude_desktop' in stan:
         meta = json.loads(meta_p.read_text()); meta['entries'] = [e for e in meta.get('entries', []) if e.get('id') != prev['profil']]
         meta['appliedId'] = prev.get('appliedId') or ''; meta_p.write_text(json.dumps(meta, indent=2) + '\n')
     (base / 'configLibrary' / (prev['profil'] + '.json')).unlink(missing_ok=True)
-    print('Claude Desktop: tryb', prev.get('deploymentMode') or '1p (normalne logowanie)')
+    print('Claude Desktop: tryb', prev.get('deploymentMode') or '1p (własne logowanie)')
 if stan.get('mcp', {}).get('claude_desktop'):
     p = pathlib.Path(os.environ['DESKTOP_1P']) / 'claude_desktop_config.json'
     if p.exists():
@@ -188,7 +188,7 @@ if [ "$ZASTOSUJ" = 1 ] && [ -n "$POTRZEBNY_TOKEN" ]; then
   kod="$(curl -s -o "$STAN/modele.json" -w '%{http_code}' -H "Authorization: Bearer $T" "$BRAMKA/v1/models" || true)"
   [ "$kod" = 200 ] || { echo "Bramka odrzuciła token albo nie odpowiada (HTTP $kod) — sprawdź --bramka i docker compose ps"; exit 1; }
   sekret_zapisz "$USLUGA_TOKEN" "$T"; napisz_pomocniki
-  MODELE="$(python3 -c "import json;print(json.dumps(sorted(m['id'] for m in json.load(open('$STAN/modele.json')).get('data',[]) if 'claude' not in m['id'].lower())))")"; rm -f "$STAN/modele.json"
+  MODELE="$(python3 -c "import json;print(json.dumps(sorted(m['id'] for m in json.load(open('$STAN/modele.json')).get('data',[]))))")"; rm -f "$STAN/modele.json"
   log "Token zapisany w magazynie systemowym ($USLUGA_TOKEN); pomocnik: $STAN/token-bramki.sh; modele: $(python3 -c "import json;print(len(json.loads('$MODELE')))")"
 elif [ -n "$POTRZEBNY_TOKEN" ]; then
   plan "token dostępu do bramki → Keychain/secret-tool ($USLUGA_TOKEN), pomocnik $STAN/token-bramki.sh"
@@ -223,37 +223,33 @@ PY
   else plan "Codex: [model_providers.bramka-ai] (base_url $BRAMKA/v1, token z pomocnika) i model_provider = \"bramka-ai\" w $CODEX_CFG"; fi
 fi
 
-# 2. Claude Code: modele innych dostawców w interfejsie Claude (tylko z --claude-code)
+# 2. Claude Code przez bramkę (tylko z --claude-code)
 if [ "$CLAUDE_CODE" = 1 ]; then
   if [ "$ZASTOSUJ" = 1 ]; then
     kopia "$CLAUDE_SETTINGS"; mkdir -p "$(dirname "$CLAUDE_SETTINGS")"
     python3 - <<'PY'
 import json, os, pathlib
 S = pathlib.Path(os.environ['STAN']); sp = S / 'stan.json'; stan = json.loads(sp.read_text()) if sp.exists() else {}
-modele = json.loads(os.environ['MODELE']); tekst = [m for m in modele if 'image' not in m]
-def wybierz(pref, zapas):
-    for m in pref:
-        if m in tekst: return m
-    return zapas
-glowny = os.environ.get('MODEL') or wybierz(['gpt-6.1-sol', 'gpt-6-sol', 'gpt-6-astra', 'gpt-5.6-sol', 'gpt-5.5'], tekst[0] if tekst else '')
-maly = os.environ.get('MALY_MODEL') or next((m for m in tekst if 'mini' in m), glowny)
-if not glowny: raise SystemExit('Bramka nie ma jeszcze modeli — połącz konto w panelu albo podaj --model')
+modele = json.loads(os.environ['MODELE'])
 p = pathlib.Path(os.environ['CLAUDE_SETTINGS']); d = json.loads(p.read_text()) if p.exists() and p.read_text().strip() else {}
 env = d.setdefault('env', {})
-nowe = {'ANTHROPIC_BASE_URL': os.environ['BRAMKA'], 'ANTHROPIC_MODEL': glowny, 'ANTHROPIC_DEFAULT_OPUS_MODEL': glowny,
-        'ANTHROPIC_DEFAULT_SONNET_MODEL': glowny, 'ANTHROPIC_DEFAULT_HAIKU_MODEL': maly,
-        'CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY': '1', 'CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS': '1'}
-if 'claude_code' not in stan: stan['claude_code'] = {'env': {k: env.get(k) for k in nowe}, 'apiKeyHelper': d.get('apiKeyHelper')}
+nowe = {'ANTHROPIC_BASE_URL': os.environ['BRAMKA'], 'CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY': '1', 'CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS': '1'}
+# Model wybierasz w Claude Code (/model) z listy bramki; --model / --maly-model ustawiają domyślne.
+if os.environ.get('MODEL'): nowe['ANTHROPIC_MODEL'] = os.environ['MODEL']
+if os.environ.get('MALY_MODEL'): nowe['ANTHROPIC_DEFAULT_HAIKU_MODEL'] = os.environ['MALY_MODEL']
+prev = stan.setdefault('claude_code', {'env': {}, 'apiKeyHelper': d.get('apiKeyHelper')})
+for k in nowe: prev['env'].setdefault(k, env.get(k))
 env.update(nowe); d['apiKeyHelper'] = str(S / 'token-bramki.sh')
 p.write_text(json.dumps(d, indent=2, ensure_ascii=False) + '\n'); sp.write_text(json.dumps(stan, indent=2)); os.chmod(sp, 0o600)
-print(f'Claude Code: modele innych dostawców przez bramkę (główny {glowny}, mały {maly}); powrót do Claude: --cofnij')
+claude = [m for m in modele if m.startswith('claude-')]
+print('Claude Code: przez bramkę (' + (f'{len(claude)} modeli Claude, ' if claude else 'bez kont Claude w bramce — połącz je w panelu, ') + f'{len(modele)} modeli razem); powrót do własnego logowania: --cofnij')
 PY
-  else plan "Claude Code (modele innych dostawców w interfejsie Claude): env.ANTHROPIC_BASE_URL=$BRAMKA, modele z /v1/models, apiKeyHelper=$STAN/token-bramki.sh w $CLAUDE_SETTINGS; powrót: --cofnij"; fi
+  else plan "Claude Code przez bramkę: env.ANTHROPIC_BASE_URL=$BRAMKA, apiKeyHelper=$STAN/token-bramki.sh w $CLAUDE_SETTINGS (model wybierasz w /model); powrót: --cofnij"; fi
 elif [ -n "$CLAUDE_CLI" ]; then
-  log "  [pomijam] Claude Code zostaje na Twoim koncie Claude (modele innych dostawców w interfejsie Claude: --claude-code)"
+  log "  [pomijam] Claude Code zostaje na Twoim własnym logowaniu (przez bramkę: --claude-code)"
 fi
 
-# 3. Claude Desktop: tryb 3P z bramką (tylko z --claude-desktop)
+# 3. Claude Desktop przez bramkę: tryb 3P (tylko z --claude-desktop)
 if [ "$CLAUDE_DESKTOP" = 1 ]; then
   if [ "$ZASTOSUJ" = 1 ]; then
     kopia "$DESKTOP_3P/claude_desktop_config.json"; kopia "$DESKTOP_3P/configLibrary/_meta.json"
@@ -265,7 +261,7 @@ meta_p = lib / '_meta.json'; meta = json.loads(meta_p.read_text()) if meta_p.exi
 cfg_p = base / 'claude_desktop_config.json'; cfg = json.loads(cfg_p.read_text()) if cfg_p.exists() else {}
 ident = next((e['id'] for e in meta['entries'] if e.get('name') == 'Bramka AI'), None) or str(uuid.uuid4())
 if 'claude_desktop' not in stan: stan['claude_desktop'] = {'profil': ident, 'deploymentMode': cfg.get('deploymentMode'), 'appliedId': meta.get('appliedId')}
-modele = [m for m in json.loads(os.environ['MODELE']) if 'image' not in m]
+modele = sorted((m for m in json.loads(os.environ['MODELE']) if 'image' not in m), key=lambda m: (not m.startswith('claude-'), m))
 prof = {'inferenceProvider': 'gateway', 'inferenceGatewayBaseUrl': os.environ['BRAMKA'], 'inferenceCredentialKind': 'helper-script',
         'inferenceCredentialHelper': str(S / 'token-bramki.sh'), 'inferenceGatewayAuthScheme': 'bearer', 'modelDiscoveryEnabled': True,
         'inferenceModels': [{'name': m, 'labelOverride': m} for m in modele]}
@@ -274,11 +270,11 @@ if not any(e['id'] == ident for e in meta['entries']): meta['entries'].append({'
 meta['appliedId'] = ident; cfg['deploymentMode'] = '3p'
 meta_p.write_text(json.dumps(meta, indent=2)); cfg_p.write_text(json.dumps(cfg, indent=2)); os.chmod(cfg_p, 0o600)
 sp.write_text(json.dumps(stan, indent=2)); os.chmod(sp, 0o600)
-print('Claude Desktop: tryb 3P z bramką (modele innych dostawców:', len(modele), ') — powrót do normalnego logowania: --cofnij')
+print('Claude Desktop: tryb 3P z bramką (modeli:', len(modele), ') — powrót do własnego logowania: --cofnij')
 PY
-  else plan "Claude Desktop (modele innych dostawców w interfejsie Claude): profil gateway w $DESKTOP_3P/configLibrary + deploymentMode=3p; powrót: --cofnij"; fi
+  else plan "Claude Desktop przez bramkę: profil gateway w $DESKTOP_3P/configLibrary + deploymentMode=3p; powrót: --cofnij"; fi
 elif [ -n "$DESKTOP_APP" ]; then
-  log "  [pomijam] Claude Desktop zostaje na Twoim koncie Claude (tryb 3P z modelami innych dostawców: --claude-desktop)"
+  log "  [pomijam] Claude Desktop zostaje na Twoim własnym logowaniu (przez bramkę, tryb 3P: --claude-desktop)"
 fi
 
 # 4. Wspólne MCP (osobny adres i osobny token dostępu do MCP)
