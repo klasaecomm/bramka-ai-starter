@@ -15,7 +15,7 @@ async function uruchom(env) {
   pulapka.listen(0, '127.0.0.1'); await once(pulapka, 'listening'); const up = 'http://127.0.0.1:' + pulapka.address().port;
   const probe = http.createServer(); probe.listen(0, '127.0.0.1'); await once(probe, 'listening'); const port = probe.address().port; await new Promise(r => probe.close(r));
   const child = spawn(process.execPath, ['--import', new URL('./straznik-sieci.mjs', import.meta.url).href, 'server.mjs'], {cwd: new URL('..', import.meta.url),
-    env: {...process.env, PORT: String(port), BRAMKA_URL: up, MCP_URL: up, KLUCZ_ZARZADZANIA: '', PANEL_HASLO: '', MCP_ADMIN_EMAIL: 'admin@example.test', MCP_ADMIN_HASLO: 'x', ...env},
+    env: {...process.env, PORT: String(port), BRAMKA_URL: up, MCP_URL: up, POKAZ: '', DEMO: '', KLUCZ_ZARZADZANIA: '', PANEL_HASLO: '', MCP_ADMIN_EMAIL: 'admin@example.test', MCP_ADMIN_HASLO: 'x', ...env},
     stdio: ['ignore', 'pipe', 'pipe']});
   let stderr = ''; child.stderr.on('data', d => { stderr += d; });
   try {
