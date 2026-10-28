@@ -4,6 +4,8 @@
 // Czyta management API CLIProxyAPI i odczyty limitów dostawców (api-call z podmianą $TOKEN$ —
 // token nigdy nie opuszcza bramki). Nie wywołuje modeli. Nie zwraca tokenów. Zero zależności npm.
 // Tryb DEMO: dane przykładowe, dopóki nie ma podłączonych kont / MCP (DEMO=auto, domyślnie).
+// Tryb POKAZ=1 (publiczne demo panelu): tylko dane przykładowe i tylko odczyt — bez logowania i sesji,
+// bez połączeń z bramką i Executorem; każdy zapis dostaje 403.
 import http from 'node:http';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -26,6 +28,9 @@ const BRAMKA_ADRES = bezUkosnika(process.env.BRAMKA_ADRES || 'http://localhost:8
 const MCP_URL = bezUkosnika(process.env.MCP_URL || 'http://127.0.0.1:4788');
 const MCP_ADRES = bezUkosnika(process.env.MCP_ADRES || 'http://localhost:4788');
 const DEMO = String(process.env.DEMO || 'auto').toLowerCase();
+const POKAZ = ['1', 'true', 'tak'].includes(String(process.env.POKAZ || '').toLowerCase());
+const KOMUNIKAT_POKAZU = 'Tryb pokazowy — postaw własną bramkę z instrukcji';
+const LIMIT_CIALA = 65536;
 const COOKIE_SECURE = PANEL_ADRES.startsWith('https://') ? '; Secure' : '';
 const START = Date.now();
 
@@ -130,10 +135,12 @@ async function odczytLimitowOnce(wymus = false) {
 
 // ---------- tryb demo ---------------------------------------------------------
 const demoWymuszone = ['1', 'true', 'tak'].includes(DEMO), demoWylaczone = ['0', 'false', 'nie'].includes(DEMO);
-const demoKontAktywne = () => demoWymuszone || (!demoWylaczone && stan.konta.length === 0);
+const demoKontAktywne = () => POKAZ || demoWymuszone || (!demoWylaczone && stan.konta.length === 0);
 
 // ---------- JSON dla panelu -----------------------------------------------------
 function proxyStan() {
+  // Pokaz nie łączy się z bramką: wiersz stanu wygląda jak w działającej instalacji z danymi demo.
+  if (POKAZ) return {ok: true, blad: null, ostatniOdczyt: new Date(Date.now() - 40e3).toISOString()};
   return {ok: accountsFresh(stan), blad: stan.bladKont, ostatniOdczyt: stan.ostatniOdczytKont ? new Date(stan.ostatniOdczytKont).toISOString() : null};
 }
 function stanJson() {
@@ -151,6 +158,7 @@ function stanJson() {
       dostepny: !swiezy || !konta.every(id => freshRead(stan.odczytyModeli[id], 630000)) ? null : konta.some(id => routingReady(stan.konta.find(x => x.id === id), m))})).sort((a, b) => a.model.localeCompare(b.model))};
 }
 async function mcpJson() {
+  if (POKAZ) return {...demoMcp(MCP_ADRES), executor: {ok: true, blad: null}};
   let real = null, blad = null;
   try { real = await executorMcp.state(); } catch (e) { blad = String(e.message || e); }
   const executor = {ok: !!real, blad};
@@ -210,15 +218,24 @@ const tylkoPrawdziweMcp = id => { if (jestDemo(id)) throw Object.assign(new Erro
 const plik = n => fs.readFileSync(new URL('./' + n, import.meta.url), 'utf8');
 const HTML = plik('index.html').replaceAll('{{MARKA}}', MARKA);
 const MODULY = {'/availability.mjs': plik('availability.mjs'), '/znaki.mjs': plik('znaki.mjs')};
+// Pokaz w internecie: skrypt strony dopuszczony skrótem SHA-256 zamiast 'unsafe-inline', bez eval,
+// do tego HSTS i izolacja okna. Style zostają inline (atrybuty style w generowanym HTML).
+const skrotySkryptow = [...HTML.matchAll(/<script type="module">([\s\S]*?)<\/script>/g)]
+  .map(m => `'sha256-${crypto.createHash('sha256').update(m[1]).digest('base64')}'`).join(' ');
+const NAGLOWKI = POKAZ ? {
+  'Content-Security-Policy': `default-src 'self'; script-src 'self' ${skrotySkryptow}; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'`,
+  'Strict-Transport-Security': 'max-age=31536000', 'Cross-Origin-Opener-Policy': 'same-origin', 'Cross-Origin-Resource-Policy': 'same-origin',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=()',
+} : {'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'"};
 function odpowiedz(res, kod, tresc, typ = 'application/json; charset=utf-8', naglowki = {}) {
   const b = typeof tresc === 'string' ? tresc : JSON.stringify(tresc);
-  res.writeHead(kod, {'Content-Type': typ, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer', 'Content-Security-Policy': "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'self'", ...naglowki});
+  res.writeHead(kod, {'Content-Type': typ, 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'no-referrer', ...NAGLOWKI, ...naglowki});
   res.end(b);
 }
 function cialo(req) {
   return new Promise((resolve, reject) => {
     let b = ''; req.setEncoding('utf8');
-    req.on('data', c => { b += c; if (b.length > 65536) { reject(Object.assign(new Error('za duże'), {status: 413})); req.destroy(); } });
+    req.on('data', c => { b += c; if (b.length > LIMIT_CIALA) { reject(Object.assign(new Error('za duże'), {status: 413})); req.destroy(); } });
     req.on('end', () => { try { resolve(b ? JSON.parse(b) : {}); } catch { reject(Object.assign(new Error('zły JSON'), {status: 400})); } });
   });
 }
@@ -238,9 +255,26 @@ const AKCJE = {
   'odswiez': async () => { await odczytKont(); await odczytLimitow(true); return {ok: true}; },
 };
 const lokalne = req => !req.headers['x-forwarded-for'];
+// Pokaz: tylko GET/HEAD strony i danych przykładowych. Ciała żądań nie czytamy, sesji nie ma,
+// a zapis (każda inna metoda) i pozostałe /api/ kończą się 403 z komunikatem dla UI.
+function pokaz(req, res, u) {
+  const odmowa = naglowki => odpowiedz(res, 403, {blad: KOMUNIKAT_POKAZU}, undefined, naglowki);
+  if (req.method !== 'GET' && req.method !== 'HEAD') return odmowa({Connection: 'close'});
+  if (u.pathname === '/healthz' || u.pathname === '/readyz') return odpowiedz(res, 200, {ok: true});
+  if (u.pathname === '/') return odpowiedz(res, 200, HTML, 'text/html; charset=utf-8');
+  if (MODULY[u.pathname]) return odpowiedz(res, 200, MODULY[u.pathname], 'text/javascript; charset=utf-8');
+  if (u.pathname === '/api/stan') return odpowiedz(res, 200, stanJson());
+  if (u.pathname === '/api/mcp') return mcpJson().then(m => odpowiedz(res, 200, m));
+  if (u.pathname.startsWith('/api/')) return odmowa();
+  return odpowiedz(res, 404, {blad: 'nie ma'});
+}
 const serwer = http.createServer(async (req, res) => {
-  const u = new URL(req.url, 'http://x');
   try {
+    // Zły adres w żądaniu (np. „GET http://[”) to 400, a nie wyjątek poza try i upadek procesu.
+    if (!URL.canParse(req.url, 'http://x')) return odpowiedz(res, 400, {blad: 'zły adres'});
+    const u = new URL(req.url, 'http://x');
+    if (Number(req.headers['content-length'] || 0) > LIMIT_CIALA) return odpowiedz(res, 413, {blad: 'za duże'}, undefined, {Connection: 'close'});
+    if (POKAZ) return await pokaz(req, res, u);
     if (u.pathname === '/healthz') return odpowiedz(res, 200, {ok: true});
     if (u.pathname === '/readyz') { const ok = accountsFresh(stan); return odpowiedz(res, ok ? 200 : 503, {gotowy: ok, bladKont: stan.bladKont}); }
     if (u.pathname === '/oauth/mcp-client.json' && req.method === 'GET') return odpowiedz(res, 200, executorMcp.clientMetadata);
@@ -293,6 +327,9 @@ async function petla() {
   setInterval(() => odczytModeliKont().catch(() => {}), 600000);
   odczytModeliKont().catch(() => {});
 }
-if (!KLUCZ || !HASLO) { console.error(JSON.stringify({time: new Date().toISOString(), event: 'start', blad: 'brak KLUCZ_ZARZADZANIA albo PANEL_HASLO (uruchom ./przygotuj.sh)'})); process.exit(1); }
-serwer.listen(PORT, '0.0.0.0', () => { console.log(JSON.stringify({time: new Date().toISOString(), event: 'start', port: PORT, bramka: BRAMKA, mcp: MCP_URL, demo: DEMO})); petla(); });
+if (!POKAZ && (!KLUCZ || !HASLO)) { console.error(JSON.stringify({time: new Date().toISOString(), event: 'start', blad: 'brak KLUCZ_ZARZADZANIA albo PANEL_HASLO (uruchom ./przygotuj.sh)'})); process.exit(1); }
+serwer.listen(PORT, '0.0.0.0', () => {
+  if (POKAZ) return console.log(JSON.stringify({time: new Date().toISOString(), event: 'start', port: PORT, tryb: 'pokaz'}));
+  console.log(JSON.stringify({time: new Date().toISOString(), event: 'start', port: PORT, bramka: BRAMKA, mcp: MCP_URL, demo: DEMO})); petla();
+});
 for (const s of ['SIGTERM', 'SIGINT']) process.on(s, () => { serwer.close(() => process.exit(0)); setTimeout(() => process.exit(0), 5000).unref(); });

@@ -93,6 +93,7 @@ dostawcy; narzędzie nie dotyka danych logowania. Bez Dockera — gotowy prompt:
 - Panel nie wywołuje modeli, nie zwraca tokenów i nie zapisuje treści rozmów. Limity czyta przez
   management API bramki (`api-call` z podmianą `$TOKEN$` — token konta nie opuszcza bramki).
 - Tryb demo: `DEMO=auto` (domyślnie; demo, dopóki nie ma kont / MCP), `DEMO=1` zawsze, `DEMO=0` nigdy.
+- Publiczne demo panelu: `POKAZ=1` — tylko dane przykładowe, bez logowania i bez połączeń z bramką i MCP, każdy zapis zwraca 403.
 - Pule sumują pozostały limit włączonych kont: Codex — okno tygodniowe, Claude — tydzień wszystkich
   modeli, Fable 5.1 — tydzień Fable. Limity Claude panel czyta co 5 min, Codexa co minutę.
 - Testy panelu: `cd panel && npm test`; wersji lekkiej: `bash konta/testy/test_konta.sh`.
