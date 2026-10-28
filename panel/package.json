@@ -11,6 +11,7 @@
   "scripts": {
     "start": "node server.mjs",
     "demo": "PANEL_HASLO=demo KLUCZ_ZARZADZANIA=demo DEMO=1 node server.mjs",
+    "pokaz": "POKAZ=1 node server.mjs",
     "test": "node --test testy/*.test.mjs",
     "check": "node --check server.mjs"
   }
